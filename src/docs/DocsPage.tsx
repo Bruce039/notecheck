@@ -7,12 +7,13 @@ import "./docs.css";
 // developer material after. Every fact here mirrors the app's own copy and the README.
 
 type SectionId =
-  | "what-is-notecheck" | "pay" | "check" | "receive" | "proves"
+  | "what-is-notecheck" | "pay" | "request" | "check" | "receive" | "proves"
   | "developer-tools" | "cli" | "faq" | "glossary";
 
 const SECTIONS: { id: SectionId; title: string }[] = [
   { id: "what-is-notecheck", title: "What is NoteCheck" },
   { id: "pay", title: "Pay with a receipt" },
+  { id: "request", title: "Ask to be paid" },
   { id: "check", title: "Check a receipt" },
   { id: "receive", title: "Receive the payment in your wallet" },
   { id: "proves", title: "What a receipt proves, and what it doesn't" },
@@ -260,6 +261,34 @@ export function DocsPage() {
             separately. The receipt is unlocked in your browser; the password is never sent anywhere.
           </p>
           <p><a href={EXAMPLE_RECEIPT_PATH}>See an example receipt</a></p>
+        </>)}
+
+        {section("request", <>
+          <p>
+            If someone owes you, send them a payment request instead of your address and an amount. They open
+            it, pay in one step, and get a receipt to send back to you.
+          </p>
+          <ol className="docs-steps">
+            <Step title="Open the Request tab">
+              Go to <a href="/?tool=request">Request</a>. If your wallet is connected, your address is filled
+              in; otherwise paste it.
+            </Step>
+            <Step title="Choose the token and amount">
+              Pick the token (testnet USDCX is one click away), the amount, and optionally a note and an
+              invoice reference.
+            </Step>
+            <Step title="Create and share the link">
+              Click <Ui>Create request link</Ui>, then copy it, share it or show the QR code.
+            </Step>
+            <Step title="They pay, you get a receipt">
+              The link opens Pay with your address, the token and the amount already filled in. When they've
+              paid, they get a receipt link, with your reference in its note, to send back to you.
+            </Step>
+          </ol>
+          <Callout tone="warn" title="A request is not proof of anything">
+            Anyone can make a request link with any address in it. If you're paying one, check the recipient
+            address with the person who sent it. The request reserves nothing and carries no signature.
+          </Callout>
         </>)}
 
         {section("receive", <>

@@ -35,9 +35,10 @@ Miden payments are private: the chain doesn't show who paid whom or how much. Th
 | | |
 |---|---|
 | **Pay with a receipt** | Send a private payment from the Miden wallet. When it's on chain you get a receipt link, optionally password-protected. |
-| **Receipt page** | A plain-language check anyone can read: amount, paid to, paid from, whether the recipient has claimed it. Save it as a PDF. |
+| **Ask to be paid** | Create a payment request link with your address, the token and the amount. The payer opens it, pays in one step and gets a receipt to send back. |
+| **Receipt page** | A plain-language check anyone can read: amount, paid to, paid from, whether the recipient has claimed it. Save it as a PDF with a QR code, or share it as an image. |
 | **Receive** | The recipient's wallet gets the note privately; if it doesn't arrive, they can import it from the receipt. |
-| **Developer tools** | Address and account ID decoder, felt and word conversion, Poseidon2 and RPO256 hashing, note tag and fee calculators, allowlist check. |
+| **Developer tools** | Address and account ID decoder, felt and word conversion, Poseidon2 and RPO256 hashing, note tag and fee calculators, allowlist and invite-code check, each with a visual breakdown. |
 | **Docs** | A built-in guide, FAQ and glossary. |
 
 Everything runs in the browser. There is no backend; the receipt lives in the link's `#fragment`, which browsers never send to a server.

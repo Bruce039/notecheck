@@ -4,11 +4,12 @@ import { EXAMPLE_RECEIPT_PATH } from "@/receipt/example";
 import { DocsPage } from "./DocsPage";
 
 // Tab ids App.tsx accepts in `?tool=`.
-const TOOL_IDS = ["pay", "receipt", "address", "felt", "tag", "hash", "fee", "allowlist", "docs"];
+const TOOL_IDS = ["pay", "request", "receipt", "address", "felt", "tag", "hash", "fee", "allowlist", "docs"];
 
 const SECTION_TITLES = [
   "What is NoteCheck",
   "Pay with a receipt",
+  "Ask to be paid",
   "Check a receipt",
   "Receive the payment in your wallet",
   "What a receipt proves, and what it doesn't",
