@@ -2,17 +2,14 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 import { useWallet } from "@miden-sdk/miden-wallet-adapter-react";
 import { Badge, Notice, TextInput, ToolCard } from "@/components/ui";
 import { attempt } from "@/lib/attempt";
-import { HRP, type Network } from "@/lib/network";
-import { FEE_FAUCETS, formatAmount } from "@/lib/tokens";
-import { release } from "@/lib/wasm";
-import { parseAmount } from "@/pay/payment";
-import { MEMO_MAX } from "@/receipt/format";
-import { parseAccountId, toBech32 } from "@/tools/address/account";
 import { QrCode } from "./QrCode";
 import { RequestLink } from "./RequestLink";
-import { REF_MAX, encodeRequest, requestUrl, type PaymentRequestV1 } from "./format";
 import { useTokenInfo } from "./useTokenInfo";
 import "./request.css";
+import {
+  encodeRequest, FEE_FAUCETS, formatAmount, HRP, MEMO_MAX, type Network, parseAccountId, parseAmount,
+  type PaymentRequestV1, REF_MAX, release, requestUrl, toBech32,
+} from "notecheck";
 
 /** An address or ID on `network`, as its 0x hex. Bech32 input from another network is refused. */
 function checkOnNetwork(raw: string, network: Network, what: string): string {

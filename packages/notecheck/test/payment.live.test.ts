@@ -6,8 +6,8 @@ import { MidenClient, NoteVisibility, RpcClient, Endpoint } from "@miden-sdk/mid
 import { createHash, randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { verifyReceipt } from "@/receipt/verify";
-import { pickPaymentNote, waitForReceipt, type ReceiptRpc } from "./payment";
+import { verifyNoteFile } from "../src/verify.js";
+import { pickPaymentNote, waitForReceipt, type ReceiptRpc } from "../src/payment.js";
 
 const FAUCET = "https://faucet-api.testnet.miden.io";
 
@@ -41,7 +41,7 @@ async function fund(accountId: string): Promise<string> {
   return res.note_id;
 }
 
-describe.runIf(import.meta.env.LIVE === "1")("payment on testnet", () => {
+describe.runIf(process.env.LIVE === "1")("payment on testnet", () => {
   it("built request commits, receipt verifies", async () => {
     const client = await MidenClient.createTestnet({
       storeName: `pay-live-${Date.now()}`,
@@ -74,7 +74,7 @@ describe.runIf(import.meta.env.LIVE === "1")("payment on testnet", () => {
 
     const call = <T,>(fn: (r: ReceiptRpc) => Promise<T>) => fn(rpc);
     const receipt = await waitForReceipt(call, noteBytes, { timeoutMs: 120_000 });
-    const v = await verifyReceipt(rpc, receipt);
+    const v = await verifyNoteFile(rpc, receipt);
     expect(v.status).toBe("included");
     expect(v.summary.noteId).toBe(noteId);
     expect(v.summary.sender).toBe(aHex);

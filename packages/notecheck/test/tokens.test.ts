@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountId } from "@miden-sdk/miden-sdk";
-import { formatAmount, parseTokenList, tokenListUrl } from "./tokens";
+import { formatAmount, parseTokenList, tokenListUrl } from "../src/tokens.js";
 
-type TokensModule = typeof import("./tokens");
+type TokensModule = typeof import("../src/tokens.js");
 
 // From testnet.json in 0xMiden/token-list.
 const MIDEN_B32 = "mtst1aqvpq8a9ytqhfvt9al20wzsrs56g83ec";
@@ -124,7 +124,7 @@ describe("tokenInfo", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    mod = await import("./tokens");
+    mod = await import("../src/tokens.js");
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
   });
@@ -186,10 +186,10 @@ describe("tokenInfo", () => {
   });
 });
 
-describe.runIf(import.meta.env.LIVE === "1")("tokenInfo (live testnet)", () => {
+describe.runIf(process.env.LIVE === "1")("tokenInfo (live testnet)", () => {
   it("reads the fee faucet's on-chain metadata", async () => {
     vi.resetModules();
-    const mod: TokensModule = await import("./tokens");
+    const mod: TokensModule = await import("../src/tokens.js");
     const info = await mod.tokenInfo("testnet", FEE_FAUCET_HEX);
     expect(info?.verified).toBe(true); // pinned native fee faucet
     console.log("fee faucet:", info);
@@ -201,7 +201,7 @@ describe.runIf(import.meta.env.LIVE === "1")("tokenInfo (live testnet)", () => {
 
   it("reads the live token list", async () => {
     vi.resetModules();
-    const mod: TokensModule = await import("./tokens");
+    const mod: TokensModule = await import("../src/tokens.js");
     expect(await mod.tokenInfo("testnet", MIDEN_HEX)).toMatchObject({ symbol: "MIDEN", decimals: 6, source: "token-list", verified: true });
   }, 30_000);
 });

@@ -2,14 +2,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TESTNET_RECEIPT as F } from "@/receipt/fixtures";
-import { toBech32 } from "@/tools/address/account";
-import { decodeRequest } from "./format";
+import { decodeRequest, toBech32 } from "notecheck";
 
 const h = vi.hoisted(() => ({ wallet: {} as Record<string, unknown>, verified: true }));
 
 vi.mock("@miden-sdk/miden-wallet-adapter-react", () => ({ useWallet: () => h.wallet }));
-vi.mock("@/lib/tokens", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/tokens")>()),
+vi.mock("notecheck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("notecheck")>()),
   tokenInfo: async (_n: string, faucet: string) =>
     faucet === F.faucetId ? { symbol: "USDCX", decimals: 6, source: "chain", verified: h.verified } : null,
 }));

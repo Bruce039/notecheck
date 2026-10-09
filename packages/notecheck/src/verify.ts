@@ -1,6 +1,6 @@
 import { NoteId, NoteType, Word, type FetchedNote, type RpcClient } from "@miden-sdk/miden-sdk";
-import { release } from "@/lib/wasm";
-import { inspectNoteFileBytes, type NoteSummary } from "./inspect";
+import { release } from "./wasm.js";
+import { inspectNoteFileBytes, type NoteSummary } from "./inspect.js";
 
 /** The part of RpcClient verification needs; injectable for tests. */
 export type VerifyRpc = Pick<RpcClient, "getNotesById" | "getNullifierCommitHeight" | "getBlockHeaderByNumber">;
@@ -54,7 +54,7 @@ async function blockTime(rpc: VerifyRpc, block: number): Promise<number> {
  * means that ID is on chain with the same sender, tag and type. Throws `UnsupportedReceiptError`
  * for files that cannot be receipts and passes RPC errors through. Calls are sequential.
  */
-export async function verifyReceipt(rpc: VerifyRpc, noteFileBytes: Uint8Array): Promise<Verification> {
+export async function verifyNoteFile(rpc: VerifyRpc, noteFileBytes: Uint8Array): Promise<Verification> {
   const summary = inspectNoteFileBytes(noteFileBytes);
 
   // getNotesById consumes the NoteIds in the array; the id is not used afterwards.

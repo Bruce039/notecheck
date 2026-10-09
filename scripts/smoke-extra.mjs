@@ -26,8 +26,8 @@ const notes = [];
 const check = (ok, msg) => { console.log(`${ok ? "ok  " : "FAIL"} ${msg}`); if (!ok) failures.push(msg); };
 const flat = (s) => s.replace(/\s+/g, " ").trim();
 
-// --- Fixture accounts (from src/receipt/fixtures.ts: a real testnet payment) ---
-const fx = readFileSync("src/receipt/fixtures.ts", "utf8");
+// --- Fixture accounts (from packages/notecheck/test/fixtures.ts: a real testnet payment) ---
+const fx = readFileSync("packages/notecheck/test/fixtures.ts", "utf8");
 const pick = (k) => fx.match(new RegExp(`${k}:\\s*"([^"]+)"`))[1];
 const SENDER = pick("sender"), RECIPIENT = pick("recipient"), FAUCET = pick("faucetId");
 const b32 = (hex) => Address.fromAccountId(AccountId.fromHex(hex)).toBech32(NetworkId.testnet());
@@ -158,7 +158,7 @@ const receiptText = async (page) => flat(await page.locator(".receipt").innerTex
 {
   const page = await newPage();
   await page.goto(base + "/?tool=address");
-  await page.getByRole("navigation", { name: "Tools" }).waitFor({ timeout: 90_000 });
+  await page.getByRole("navigation", { name: "Tools", exact: true }).waitFor({ timeout: 90_000 });
   await page.locator(".tab").first().focus();
   const visited = [];
   for (let i = 0; i < 8; i++) {

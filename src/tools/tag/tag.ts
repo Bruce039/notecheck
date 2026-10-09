@@ -1,6 +1,5 @@
 import { NoteTag } from "@miden-sdk/miden-sdk";
-import { parseAccountId } from "@/tools/address/account";
-import { release } from "@/lib/wasm";
+import { parseAccountId, release } from "notecheck";
 
 /** Bits of the target's ID prefix that `NoteTag.withAccountTarget` keeps by default. */
 export const DEFAULT_TAG_LENGTH = 14;

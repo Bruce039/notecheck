@@ -31,6 +31,8 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // The app uses the notecheck package from source (packages/notecheck), not from npm.
+      notecheck: path.resolve(__dirname, "./packages/notecheck/src/index.ts"),
     },
   },
 });

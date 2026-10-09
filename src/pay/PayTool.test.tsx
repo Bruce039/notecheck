@@ -5,13 +5,12 @@ import userEvent from "@testing-library/user-event";
 import { NoteId, NoteInclusionProof, type FetchedNote } from "@miden-sdk/miden-sdk";
 import { TransactionType } from "@miden-sdk/miden-wallet-adapter-base";
 import { TESTNET_RECEIPT as F } from "@/receipt/fixtures";
-import { toBase64 } from "@/receipt/bytes";
-import { decodeReceipt } from "@/receipt/format";
-import { encodeRequest, type PaymentRequestV1 } from "@/request/format";
-import { inspectNoteFileBytes, noteFileFromBase64 } from "@/receipt/inspect";
-import { toBech32 } from "@/tools/address/account";
 import { buildTestPayment } from "./testNote";
 import { loadPending, loadRecent, savePending, type PendingPayment } from "./payment";
+import {
+  decodeReceipt, encodeRequest, inspectNoteFileBytes, noteFileFromBase64, type PaymentRequestV1, toBase64,
+  toBech32,
+} from "notecheck";
 
 const h = vi.hoisted(() => ({
   wallet: {} as Record<string, unknown>,
@@ -24,12 +23,10 @@ const h = vi.hoisted(() => ({
 
 vi.mock("@miden-sdk/miden-wallet-adapter-react", () => ({ useWallet: () => h.wallet }));
 vi.mock("@/lib/wallet", () => ({ WalletButton: () => <span>wallet-button-stub</span> }));
-vi.mock("@/lib/tokens", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/tokens")>()),
+vi.mock("notecheck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("notecheck")>()),
   tokenInfo: async (_n: string, faucet: string) =>
     faucet === F.faucetId ? { symbol: "USDCX", decimals: 6, source: "chain", verified: h.verified } : null,
-}));
-vi.mock("@/lib/rpc", () => ({
   withRpc: async (_network: string, fn: (rpc: unknown) => Promise<unknown>) => {
     h.rpcCalls++;
     return fn({

@@ -3,8 +3,8 @@ import {
   AccountId, Felt, FeltArray, FungibleAsset, InputNote, Note, NoteAssets, NoteAttachment, NoteDetails,
   NoteFile, NoteInclusionProof, NoteMetadata, NoteRecipient, NoteScript, NoteStorage, NoteTag, NoteType,
 } from "@miden-sdk/miden-sdk";
-import { TESTNET_RECEIPT as R } from "./fixtures";
-import { inspectNote, inspectNoteFileBytes, noteFileFromBase64, UnsupportedReceiptError } from "./inspect";
+import { TESTNET_RECEIPT as R } from "./fixtures.js";
+import { inspectNote, inspectNoteFileBytes, noteFileFromBase64, UnsupportedReceiptError } from "../src/inspect.js";
 
 const fixtureBytes = () => noteFileFromBase64(R.noteFileB64);
 const bytesOf = (x: Uint8Array | number[]) => Uint8Array.from(x);

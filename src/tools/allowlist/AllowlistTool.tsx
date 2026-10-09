@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Badge, Field, Notice, TextInput, ToolCard } from "@/components/ui";
-import type { Network } from "@/lib/network";
-import { withRpc } from "@/lib/rpc";
 import { UnsupportedError, checkAccountAllowed, checkInvitationCode, type AllowlistResult } from "./allowlist";
+import { type Network, withRpc } from "notecheck";
 
 const EXAMPLE = "mtst1apus5hps3cnxrq2e5fhnynez7v5sytsk_qr7qqq9wr6w";
 

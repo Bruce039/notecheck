@@ -1,6 +1,6 @@
-import { NETWORKS, type Network } from "@/lib/network";
-import { fromBase64Url, gunzip, gzip, toBase64Url } from "./bytes";
-import { PBKDF2_ITERATIONS, decrypt, encrypt } from "./crypto";
+import { NETWORKS, type Network } from "./network.js";
+import { fromBase64Url, gunzip, gzip, toBase64Url } from "./bytes.js";
+import { PBKDF2_ITERATIONS, decrypt, encrypt } from "./crypto.js";
 
 /**
  * miden-receipt/v1. Lives in the URL fragment (`/r#r1.…` or `/r#r1e.…` when
@@ -42,9 +42,16 @@ export class PasswordRequiredError extends Error {
   constructor() { super("This receipt is password-protected."); }
 }
 
-export const isEncryptedFragment = (fragment: string) => stripHash(fragment).startsWith(ENCRYPTED);
+/** The part after '#' of a link, or the input itself when it has no '#'. */
+export function fragmentOf(linkOrFragment: string): string {
+  const s = linkOrFragment.trim();
+  const i = s.indexOf("#");
+  return i >= 0 ? s.slice(i + 1) : s;
+}
 
-const stripHash = (s: string) => s.trim().replace(/^#/, "");
+const stripHash = fragmentOf;
+
+export const isEncryptedFragment = (fragment: string) => stripHash(fragment).startsWith(ENCRYPTED);
 
 export function validateReceipt(x: unknown): ReceiptV1 {
   if (typeof x !== "object" || x === null) throw new Error("Receipt is not an object.");
@@ -80,6 +87,7 @@ export async function encodeReceipt(receipt: ReceiptV1, password?: string, itera
     : PLAIN + toBase64Url(packed);
 }
 
+/** Accepts the fragment (with or without '#') or the whole link. */
 export async function decodeReceipt(fragment: string, password?: string, iterations = PBKDF2_ITERATIONS): Promise<ReceiptV1> {
   const f = stripHash(fragment);
   if (f.length > MAX_FRAGMENT) throw new Error("Receipt link is too long.");

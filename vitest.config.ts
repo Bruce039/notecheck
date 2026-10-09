@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      notecheck: path.resolve(__dirname, "./packages/notecheck/src/index.ts"),
       // The base adapter has only a `module` entry; Vitest's SSR resolver needs
       // an explicit entry even when tests replace the module with vi.mock.
       "@miden-sdk/miden-wallet-adapter-base": path.resolve(
@@ -18,7 +19,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "packages/notecheck/test/**/*.test.ts"],
     passWithNoTests: true,
     server: {
       deps: {

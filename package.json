@@ -1,5 +1,5 @@
 {
-  "name": "notecheck",
+  "name": "notecheck-app",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -13,7 +13,10 @@
     "test:coverage": "vitest --run --coverage",
     "smoke": "node scripts/smoke.mjs",
     "smoke:extra": "node scripts/smoke-extra.mjs",
-    "brand": "node brand/render.mjs"
+    "brand": "node brand/render.mjs",
+    "pkg:build": "cd packages/notecheck && npm run build",
+    "pkg:test": "cd packages/notecheck && npm test",
+    "pkg:pack": "cd packages/notecheck && npm pack --dry-run"
   },
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "5.3.0",

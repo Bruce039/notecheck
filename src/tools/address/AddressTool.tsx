@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { ExplorerLink } from "@/components/ExplorerLink";
 import { Badge, Field, Notice, TextInput, ToolCard } from "@/components/ui";
 import { attempt } from "@/lib/attempt";
-import { HRP, NETWORKS, type Network } from "@/lib/network";
 import { toHex64 } from "@/tools/felt/felt";
 import { accountTag } from "@/tools/tag/tag";
 import { AccountAnatomy } from "./AccountAnatomy";
 import { decodeAccount } from "./account";
+import { HRP, type Network, NETWORKS } from "notecheck";
 
 const EXAMPLE = "mtst1apus5hps3cnxrq2e5fhnynez7v5sytsk_qr7qqq9wr6w";
 

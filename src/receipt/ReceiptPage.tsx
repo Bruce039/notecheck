@@ -5,24 +5,20 @@ import type { RpcClient } from "@miden-sdk/miden-sdk";
 import { Badge, Notice } from "@/components/ui";
 import { LogoMark } from "@/components/Logo";
 import { BRAND } from "@/brand";
-import type { Network } from "@/lib/network";
-import { withRpc } from "@/lib/rpc";
 import { WalletButton } from "@/lib/wallet";
-import { release } from "@/lib/wasm";
-import { formatAmount, tokenInfo, type TokenInfo } from "@/lib/tokens";
-import { toBech32 } from "@/tools/address/account";
-import { WrongPasswordError } from "./crypto";
-import { PasswordRequiredError, decodeReceipt, isEncryptedFragment, type ReceiptV1 } from "./format";
-import { UnsupportedReceiptError, noteFileFromBase64 } from "./inspect";
-import { verifyReceipt, type Verification } from "./verify";
 import {
-  assess, block, cleanMemo, fmtLocal, fmtUtc, isTransient, mismatchReason, type Included, type Tip,
+  assess, block, cleanMemo, fmtLocal, fmtUtc, mismatchReason, type Included, type Tip,
 } from "./view/status";
 import { Chevron, CopyGlyph, Perforation, PaperGrain, SlipSkeleton, Stamp, VerdictIcon } from "./view/visuals";
 import { ScanToCheck } from "./view/qr";
 import type { ShareCardData } from "./view/shareCard";
 import { ShareImageDialog } from "./view/shareDialog";
 import "./receipt.css";
+import {
+  decodeReceipt, formatAmount, isEncryptedFragment, isTransient, type Network, noteFileFromBase64, PasswordRequiredError,
+  type ReceiptV1, release, toBech32, tokenInfo, type TokenInfo, UnsupportedReceiptError, type Verification,
+  verifyNoteFile, withRpc, WrongPasswordError,
+} from "notecheck";
 
 /** Delay before the single automatic retry of a transient RPC error. */
 const RETRY_DELAY_MS = 1500;
@@ -70,7 +66,7 @@ export function ReceiptPage() {
     const net = receipt.network;
     setState({ step: "loading", message: `Checking ${net}…` });
     const attempt = (bytes: Uint8Array) => withRpc(net, async (rpc) => {
-      const result = await verifyReceipt(rpc, bytes);
+      const result = await verifyNoteFile(rpc, bytes);
       const tip = result.status === "included" && result.summary.kind === "P2IDE" ? await readTip(rpc) : null;
       return { result, tip };
     });

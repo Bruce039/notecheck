@@ -1,10 +1,7 @@
 import { Notice } from "@/components/ui";
-import type { Network } from "@/lib/network";
-import type { TokenInfo } from "@/lib/tokens";
 import { requestAmountText, shortAddress } from "./display";
-import { toBech32 } from "@/tools/address/account";
-import type { PaymentRequestV1 } from "./format";
 import "./request.css";
+import { type Network, type PaymentRequestV1, toBech32, type TokenInfo } from "notecheck";
 
 /** The request a payer is looking at, with the checks they should make before paying it. */
 export function RequestCard({ req, token, network, edited, onEdit, onDismiss }: {

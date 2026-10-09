@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Field, Notice, TextInput, ToolCard } from "@/components/ui";
 import { attempt } from "@/lib/attempt";
-import type { Network } from "@/lib/network";
-import { withRpc } from "@/lib/rpc";
-import { release } from "@/lib/wasm";
 import { FeeChart } from "./FeeChart";
 import { computeFee, parseBaseFee, parseCycles } from "./fee";
+import { type Network, release, withRpc } from "notecheck";
 
 type Fetched = { network: Network; block: number; baseFee: string };
 

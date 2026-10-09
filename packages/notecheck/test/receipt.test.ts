@@ -1,8 +1,8 @@
 // @vitest-environment node
-import { fromBase64Url, gunzip, gzip, toBase64, toBase64Url } from "./bytes";
-import { WrongPasswordError } from "./crypto";
-import { PasswordRequiredError, decodeReceipt, encodeReceipt, isEncryptedFragment, receiptUrl, type ReceiptV1 } from "./format";
-import { TESTNET_RECEIPT } from "./fixtures";
+import { fromBase64Url, gunzip, gzip, toBase64, toBase64Url } from "../src/bytes.js";
+import { WrongPasswordError } from "../src/crypto.js";
+import { PasswordRequiredError, decodeReceipt, encodeReceipt, isEncryptedFragment, receiptUrl, type ReceiptV1 } from "../src/receipt.js";
+import { TESTNET_RECEIPT } from "./fixtures.js";
 
 // Low PBKDF2 cost keeps tests fast; production uses PBKDF2_ITERATIONS.
 const FAST = 1_000;

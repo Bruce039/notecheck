@@ -3,12 +3,10 @@ import { ExplorerLink } from "@/components/ExplorerLink";
 import { ReceiptLink } from "@/components/ReceiptLink";
 import { EXAMPLE_RECEIPT_PATH } from "./example";
 import { Badge, Field, Notice, TextInput, ToolCard } from "@/components/ui";
-import type { Network } from "@/lib/network";
-import { withRpc } from "@/lib/rpc";
-import { toBase64 } from "./bytes";
-import { MEMO_MAX, encodeReceipt, receiptUrl } from "./format";
-import { inspectNoteFileBytes, noteFileFromBase64, type NoteSummary } from "./inspect";
-import { verifyReceipt, type Verification } from "./verify";
+import {
+  encodeReceipt, inspectNoteFileBytes, MEMO_MAX, type Network, noteFileFromBase64, type NoteSummary,
+  receiptUrl, toBase64, type Verification, verifyNoteFile, withRpc,
+} from "notecheck";
 
 type Loaded = { bytes: Uint8Array; summary: NoteSummary; check?: Verification | { status: "error"; message: string } };
 
@@ -64,7 +62,7 @@ function CreateReceipt({ network }: { network: Network }) {
     setLoaded({ bytes, summary });
     if (network === "mainnet") return;
     try {
-      const check = await withRpc(network, (rpc) => verifyReceipt(rpc, bytes));
+      const check = await withRpc(network, (rpc) => verifyNoteFile(rpc, bytes));
       setLoaded({ bytes, summary, check });
     } catch (e) {
       setLoaded({ bytes, summary, check: { status: "error", message: (e as Error).message } });

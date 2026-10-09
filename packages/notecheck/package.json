@@ -1,0 +1,57 @@
+{
+  "name": "notecheck",
+  "version": "0.1.0",
+  "description": "Verifiable private payment receipts and payment requests for Miden",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "notecheck": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SPEC.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && chmod +x dist/cli.js",
+    "test": "vitest --run",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "@miden-sdk/miden-sdk": "^0.17.3"
+  },
+  "devDependencies": {
+    "@miden-sdk/miden-sdk": "0.17.3",
+    "@types/node": "^24.6.0",
+    "typescript": "~5.7.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "miden",
+    "privacy",
+    "receipts",
+    "payments",
+    "zero-knowledge"
+  ],
+  "license": "MIT",
+  "homepage": "https://notecheck-miden.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bruce039/notecheck.git",
+    "directory": "packages/notecheck"
+  },
+  "bugs": {
+    "url": "https://github.com/Bruce039/notecheck/issues"
+  }
+}

@@ -1,11 +1,8 @@
-import type { Network } from "@/lib/network";
-import { toBech32 } from "@/tools/address/account";
-import type { Verification } from "../verify";
+import { fundsStatus, toBech32, type Network, type Tip, type Verification } from "notecheck";
+
+export type { Tip };
 
 export type Included = Extract<Verification, { status: "included" }>;
-
-/** Chain tip at check time; `time` is unix seconds. */
-export type Tip = { block: number; time: number };
 
 /** Rough block interval, used only for labelled estimates. */
 export const SECONDS_PER_BLOCK = 3;
@@ -39,38 +36,35 @@ export function blockWithEstimate(n: number, tip: Tip | null): string {
 }
 
 /**
- * What the chain says about where the funds went. P2ID and P2IDE without reclaim can only be
- * consumed by the target. A reclaimable P2IDE note can also be consumed by the reclaimer from
- * max(reclaimHeight, timelockHeight) on, and the chain doesn't say which account consumed it.
- * `tip` is needed only for P2IDE; null means it couldn't be read, which is treated as the worst case.
+ * The receipt page's wording for what the chain says about where the funds went; the decision
+ * itself is `fundsStatus` from the package. `tip` is needed only for P2IDE.
  */
 export function assess(r: Included, tip: Tip | null, network: Network): Assessment {
   const s = r.summary;
-  const spent = r.spentAt !== null;
+  const funds = fundsStatus(s, r.spentAt, tip);
+  const { received, reclaimFrom: unlock } = funds;
+  const verdict = funds.confirmed ? "good" : "warn";
   const otherReclaimer = s.reclaimer !== null && s.reclaimer !== s.sender;
   const who = otherReclaimer ? `account ${toBech32(s.reclaimer!, network)}` : "the sender";
   const whoShort = otherReclaimer ? "another account" : "the sender";
-  const unlock = s.kind === "P2IDE" && s.reclaimHeight !== null
-    ? Math.max(s.reclaimHeight, s.timelockHeight ?? 0)
-    : null;
   const confirmed = "Payment confirmed on the Miden network";
   const extra: string[] = [];
 
-  if (spent) {
+  if (r.spentAt !== null) {
     if (unlock === null) {
       return {
-        verdict: "good", headline: confirmed, extra, received: "yes",
+        verdict, headline: confirmed, extra, received,
         status: { tone: "good", lead: "✓ Received", rest: "the recipient has claimed the funds" },
       };
     }
-    if (r.spentAt! < unlock) {
+    if (funds.confirmed) {
       return {
-        verdict: "good", headline: confirmed, extra, received: "yes",
+        verdict, headline: confirmed, extra, received,
         status: { tone: "good", lead: "✓ Received by the recipient", rest: `claimed before ${whoShort} could take it back` },
       };
     }
     return {
-      verdict: "warn", headline: `Payment committed — it may have gone back to ${whoShort}`, extra, received: "maybe",
+      verdict, headline: `Payment committed — it may have gone back to ${whoShort}`, extra, received,
       status: {
         tone: "warn",
         lead: "Claimed — by the recipient, or returned to the sender",
@@ -84,20 +78,20 @@ export function assess(r: Included, tip: Tip | null, network: Network): Assessme
     extra.push(`The recipient can claim it only from ${blockWithEstimate(s.timelockHeight, tip)}.`);
   }
   if (unlock === null) {
-    return { verdict: "good", headline: confirmed, status: waiting, extra, received: "no" };
+    return { verdict, headline: confirmed, status: waiting, extra, received };
   }
   if (!tip) {
     extra.push(`From block ${block(unlock)}, ${who} can take it back while it is unclaimed. The current block couldn't be read, so this may already be possible.`);
-    return { verdict: "warn", headline: `Payment committed — ${whoShort} may be able to take it back`, status: { ...waiting, tone: "warn" }, extra, received: "no" };
+    return { verdict, headline: `Payment committed — ${whoShort} may be able to take it back`, status: { ...waiting, tone: "warn" }, extra, received };
   }
-  if (tip.block >= unlock) {
+  if (!funds.confirmed) {
     return {
-      verdict: "warn", headline: `Payment committed — ${whoShort} can still take it back`, extra, received: "no",
+      verdict, headline: `Payment committed — ${whoShort} can still take it back`, extra, received,
       status: { tone: "warn", lead: "Not claimed yet", rest: `${who} can take it back now (since block ${block(unlock)}), until the recipient claims it` },
     };
   }
   extra.push(`If it is still unclaimed at ${blockWithEstimate(unlock, tip)}, ${who} can take it back.`);
-  return { verdict: "good", headline: confirmed, status: waiting, extra, received: "no" };
+  return { verdict, headline: confirmed, status: waiting, extra, received };
 }
 
 const LEADING_MARKS = /^[\s✓✔☑✅✕✗✘☒❌✖]+/u;
@@ -114,12 +108,6 @@ export function cleanMemo(memo: string): string {
     .replace(LEADING_MARKS, "")
     .replace(/\s{2,}/g, " ")
     .trim();
-}
-
-/** Errors worth one automatic retry: timeouts, dropped connections and 5xx-like replies. */
-export function isTransient(e: unknown): boolean {
-  const m = e instanceof Error ? e.message : String(e);
-  return /time(d)?\s?out|failed to fetch|fetch failed|network\s?error|load failed|unavailable|bad gateway|ECONNRESET|\b50[234]\b/i.test(m);
 }
 
 /** The verifier's mismatch reason without account IDs, which the mismatch view doesn't show. */

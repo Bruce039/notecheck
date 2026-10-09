@@ -2,7 +2,6 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LogoMark, Wordmark } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SiteFooter } from "@/components/SiteFooter";
-import { NETWORKS, type Network } from "@/lib/network";
 import { AppWalletProvider } from "@/lib/wallet";
 import { PayTool } from "@/pay/PayTool";
 import { ReceiptPage } from "@/receipt/ReceiptPage";
@@ -15,6 +14,7 @@ import { FeeTool } from "@/tools/fee/FeeTool";
 import { FeltTool } from "@/tools/felt/FeltTool";
 import { HashTool } from "@/tools/hash/HashTool";
 import { TagTool } from "@/tools/tag/TagTool";
+import { type Network, NETWORKS } from "notecheck";
 
 type ToolId = "address" | "felt" | "tag" | "hash" | "fee" | "allowlist" | "pay" | "request" | "receipt" | "docs";
 

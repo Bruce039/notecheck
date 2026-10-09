@@ -1,4 +1,4 @@
-import type { Network } from "./network";
+import type { Network } from "./network.js";
 
 // Midenscan routes: /tx/<id>, /note/<id>, /account/<id or bech32>, /block/<number>.
 // Mainnet has no public explorer yet.

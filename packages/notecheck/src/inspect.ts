@@ -1,5 +1,5 @@
 import { AccountId, NoteFile, NoteScript, NoteType, type Felt, type Note } from "@miden-sdk/miden-sdk";
-import { release } from "@/lib/wasm";
+import { release } from "./wasm.js";
 
 export type ReceiptAsset = { faucetId: string; amount: bigint };
 

@@ -11,3 +11,6 @@
 export function release(...objects: unknown[]): void {
   for (const o of objects) (o as { free?: () => void } | null | undefined)?.free?.();
 }
+
+/** SDK `serialize()` output as a Uint8Array: the Node binding returns plain arrays. */
+export const bytesOf = (x: Uint8Array | number[]): Uint8Array => (x instanceof Uint8Array ? x : Uint8Array.from(x));

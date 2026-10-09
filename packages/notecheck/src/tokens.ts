@@ -1,7 +1,7 @@
 import { AccountId, BasicFungibleFaucetComponent } from "@miden-sdk/miden-sdk";
-import { HRP, type Network } from "@/lib/network";
-import { withRpc } from "@/lib/rpc";
-import { release } from "@/lib/wasm";
+import { HRP, type Network } from "./network.js";
+import { withRpc } from "./rpc.js";
+import { release } from "./wasm.js";
 
 export type TokenInfo = {
   symbol: string;
@@ -215,4 +215,13 @@ export function formatAmount(amount: bigint, decimals: number): string {
   const int = (abs / base).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const frac = decimals === 0 ? "" : (abs % base).toString().padStart(decimals, "0").replace(/0+$/, "");
   return `${neg ? "-" : ""}${int}${frac ? `.${frac}` : ""}`;
+}
+
+/** Decimal string → base units, exact. "1.5", 6 → 1500000n. */
+export function parseAmount(input: string, decimals: number): bigint {
+  const s = input.trim().replace(/[_,\s]/g, "");
+  if (!/^\d+(\.\d+)?$/.test(s)) throw new Error("Enter an amount like 12.5");
+  const [int, frac = ""] = s.split(".");
+  if (frac.length > decimals) throw new Error(`At most ${decimals} decimal places.`);
+  return BigInt(int + frac.padEnd(decimals, "0"));
 }

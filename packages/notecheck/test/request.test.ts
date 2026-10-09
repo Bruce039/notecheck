@@ -1,12 +1,12 @@
 // @vitest-environment node
 import { gzipSync } from "node:zlib";
-import { TESTNET_RECEIPT as F } from "@/receipt/fixtures";
-import { MEMO_MAX } from "@/receipt/format";
-import { toBech32 } from "@/tools/address/account";
+import { TESTNET_RECEIPT as F } from "./fixtures.js";
+import { MEMO_MAX } from "../src/receipt.js";
+import { toBech32 } from "../src/account.js";
 import {
   REF_MAX, decodeRequest, encodeRequest, isRequestFragment, receiptMemoFor, requestUrl, validateRequest,
   type PaymentRequestV1,
-} from "./format";
+} from "../src/request.js";
 
 const TO = "mtst1ap6wl92rd8jfwsgehu25ukeh5ykn7970";
 const base: PaymentRequestV1 = { v: 1, network: "testnet", to: TO, faucetId: F.faucetId, amount: "1500000" };

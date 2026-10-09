@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { EXPLORER_NAME, explorerUrl, type ExplorerKind } from "@/lib/explorer";
-import type { Network } from "@/lib/network";
+import { EXPLORER_NAME, type ExplorerKind, explorerUrl, type Network } from "notecheck";
 
 /** External link to Midenscan; renders nothing when the network has no explorer or the id is invalid. */
 export function ExplorerLink({ network, kind, id, children }: {

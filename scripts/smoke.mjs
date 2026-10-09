@@ -88,7 +88,7 @@ console.log("M7 no-wallet:", (await page.locator(".wallet").innerText()).replace
 await page.screenshot({ path: `${out}/pay.png`, fullPage: true });
 
 // Receipts (M8 / M9) with the real testnet fixture
-const fixture = readFileSync("src/receipt/fixtures.ts", "utf8").match(/noteFileB64:\s*"([^"]+)"/)[1];
+const fixture = readFileSync("packages/notecheck/test/fixtures.ts", "utf8").match(/noteFileB64:\s*"([^"]+)"/)[1];
 const plainFragment = "r1." + gzipSync(JSON.stringify({ v: 1, network: "testnet", noteFile: fixture, memo: "Invoice #42" }))
   .toString("base64url");
 await page.goto(base + "/r#" + plainFragment);

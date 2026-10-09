@@ -1,6 +1,5 @@
-import { AccountId, AccountInterface, Address } from "@miden-sdk/miden-sdk";
-import { NETWORKS, networkFromHrp, networkId, type Network } from "@/lib/network";
-import { release } from "@/lib/wasm";
+import { AccountInterface, Address } from "@miden-sdk/miden-sdk";
+import { NETWORKS, networkId, parseAccountId, release, type AccountInput, type Network } from "notecheck";
 
 /**
  * Account ID layout (miden-protocol v0.17, ID version 1):
@@ -16,37 +15,12 @@ export type AccountInfo = {
   visibility: "public" | "private";
   assetCallbacks: boolean;
   /** Where the input came from. */
-  input: { kind: "hex" } | { kind: "bech32"; hrp: string; network: Network | null; hasInterface: boolean };
+  input: AccountInput;
   /** Plain bech32 address per network. */
   bech32: Record<Network, string>;
   /** Bech32 address with the BasicWallet interface suffix, per network. */
   bech32Wallet: Record<Network, string>;
 };
-
-export function parseAccountId(raw: string): { id: AccountId; input: AccountInfo["input"] } {
-  const s = raw.trim();
-  if (!s) throw new Error("Enter an account ID or address.");
-  if (/^0x/i.test(s)) {
-    if (!/^0x[0-9a-f]{30}$/i.test(s)) {
-      throw new Error("Hex account IDs are 0x + 30 hex chars (15 bytes).");
-    }
-    return { id: AccountId.fromHex(s.toLowerCase()), input: { kind: "hex" } };
-  }
-  // The `_…` routing suffix carries the interface/tag hints, not the ID. Some wallet-issued
-  // suffixes fail to decode ("invalid note tag length"), so, like the wallet, parse without it.
-  const [body] = s.split("_");
-  const sep = body.lastIndexOf("1");
-  if (sep <= 0) throw new Error("Not a 0x-hex ID or a bech32 address.");
-  const hrp = body.slice(0, sep).toLowerCase();
-  const hasInterface = s.includes("_");
-  const address = Address.fromBech32(body);
-  try {
-    return {
-      id: address.accountId(),
-      input: { kind: "bech32", hrp, network: networkFromHrp(hrp), hasInterface },
-    };
-  } finally { release(address); }
-}
 
 export function decodeAccount(raw: string): AccountInfo {
   const { id, input } = parseAccountId(raw);
@@ -74,26 +48,4 @@ export function decodeAccount(raw: string): AccountInfo {
       bech32Wallet,
     };
   } finally { release(id); }
-}
-
-/** Plain bech32 address for a 0x account ID on `network`; falls back to the hex on error. */
-export function toBech32(hex: string, network: Network): string {
-  try {
-    const id = AccountId.fromHex(hex);
-    const address = Address.fromAccountId(id);
-    // toBech32 consumes the NetworkId it is given.
-    const out = address.toBech32(networkId(network));
-    release(address, id);
-    return out;
-  } catch {
-    return hex;
-  }
-}
-
-/** Canonical 0x hex for an address or ID; throws a readable error on bad input. */
-export function normalizeAccountId(raw: string): string {
-  const { id } = parseAccountId(raw);
-  const hex = id.toString();
-  release(id);
-  return hex;
 }

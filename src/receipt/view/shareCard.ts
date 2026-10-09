@@ -5,7 +5,7 @@
 // tested with a fake 2D context.
 import { QR_QUIET_ZONE, RECEIPT_QR_ECC, qrMatrix } from "@/lib/qr";
 import { BRAND } from "@/brand";
-import type { Network } from "@/lib/network";
+import { type Network } from "notecheck";
 
 export const CARD_W = 1200;
 export const CARD_H = 630;

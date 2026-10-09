@@ -1,6 +1,5 @@
 import type { AccountId } from "@miden-sdk/miden-sdk";
-import { parseAccountId } from "@/tools/address/account";
-import { release } from "@/lib/wasm";
+import { parseAccountId, release } from "notecheck";
 
 /** The part of RpcClient this check needs; injectable for tests. */
 export type AllowlistRpc = {

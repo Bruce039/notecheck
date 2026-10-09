@@ -14,7 +14,7 @@ const base = process.argv[2] ?? "http://localhost:5200";
 mkdirSync(out, { recursive: true });
 mkdirSync(tmp, { recursive: true });
 
-const fixture = readFileSync(path.join(root, "src/receipt/fixtures.ts"), "utf8").match(/noteFileB64:\s*"([^"]+)"/)[1];
+const fixture = readFileSync(path.join(root, "packages/notecheck/test/fixtures.ts"), "utf8").match(/noteFileB64:\s*"([^"]+)"/)[1];
 const receipt = "/r#r1." + gzipSync(JSON.stringify({ v: 1, network: "testnet", noteFile: fixture, memo: "Invoice #42" })).toString("base64url");
 
 const browser = await chromium.launch({ channel: "chrome" });

@@ -1,5 +1,5 @@
 import { Felt, Word } from "@miden-sdk/miden-sdk";
-import { release } from "@/lib/wasm";
+import { release } from "notecheck";
 
 /** Goldilocks field modulus: 2^64 - 2^32 + 1. */
 export const MODULUS = 2n ** 64n - 2n ** 32n + 1n;

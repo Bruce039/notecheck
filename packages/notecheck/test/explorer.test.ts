@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { explorerUrl } from "./explorer";
+import { explorerUrl } from "../src/explorer.js";
 
 const TX = "0xbe24060c7ec9849e06ce6257660a9dbe5791aba6d004f8a7cb07d2ffd0d0c424";
 

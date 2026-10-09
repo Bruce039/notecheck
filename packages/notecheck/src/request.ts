@@ -1,8 +1,8 @@
-import { HRP, NETWORKS, type Network } from "@/lib/network";
-import { fromBase64Url, gunzip, gzip, toBase64Url } from "@/receipt/bytes";
-import { MEMO_MAX, cleanMemo } from "@/receipt/format";
-import { normalizeAccountId, parseAccountId, toBech32 } from "@/tools/address/account";
-import { release } from "@/lib/wasm";
+import { HRP, NETWORKS, type Network } from "./network.js";
+import { fromBase64Url, gunzip, gzip, toBase64Url } from "./bytes.js";
+import { MEMO_MAX, cleanMemo, fragmentOf } from "./receipt.js";
+import { normalizeAccountId, parseAccountId, toBech32 } from "./account.js";
+import { release } from "./wasm.js";
 
 /**
  * miden-request/v1: a payment request ("please pay me this"). Lives in the URL fragment of the
@@ -30,7 +30,7 @@ const MAX_FRAGMENT = 4_096;
 const MAX_JSON = 4_096;
 const MAX_U63 = (1n << 63n) - 1n;
 
-const stripHash = (s: string) => s.trim().replace(/^#/, "");
+const stripHash = fragmentOf;
 
 export const isRequestFragment = (fragment: string) => stripHash(fragment).startsWith(PREFIX);
 
@@ -112,6 +112,7 @@ export async function encodeRequest(request: PaymentRequestV1): Promise<string> 
   return PREFIX + toBase64Url(await gzip(json));
 }
 
+/** Accepts the fragment (with or without '#') or the whole link. */
 export async function decodeRequest(fragment: string): Promise<PaymentRequestV1> {
   const f = stripHash(fragment);
   if (!f.startsWith(PREFIX)) throw new Error("Not a payment request link.");

@@ -6,13 +6,10 @@ import {
   AccountId, FetchedNote, FungibleAsset, InputNote, Note, NoteAssets, NoteAttachment, NoteFile, NoteId,
   NoteInclusionProof, NoteMetadata, NoteTag, NoteType, type BlockHeader,
 } from "@miden-sdk/miden-sdk";
-import type { TokenInfo } from "@/lib/tokens";
 import { TESTNET_RECEIPT as R } from "./fixtures";
-import { encodeReceipt, type ReceiptV1 } from "./format";
-import { toBase64 } from "./bytes";
-import { noteFileFromBase64 } from "./inspect";
-import { toBech32 } from "@/tools/address/account";
-import type { VerifyRpc } from "./verify";
+import {
+  encodeReceipt, noteFileFromBase64, type ReceiptV1, toBase64, toBech32, type TokenInfo, type VerifyRpc,
+} from "notecheck";
 
 type OnChainNote = { id: string; sender: string; tag: number; type: NoteType; block: number };
 type Chain = {
@@ -39,14 +36,12 @@ const h = vi.hoisted(() => ({
   tokenGate: null as Promise<void> | null,
 }));
 
-vi.mock("@/lib/rpc", () => ({
+vi.mock("notecheck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("notecheck")>()),
   withRpc: async (network: string, fn: (rpc: unknown) => Promise<unknown>) => {
     h.rpcNetworks.push(network);
     return fn(makeRpc(h.chain as Chain));
   },
-}));
-vi.mock("@/lib/tokens", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/tokens")>()),
   tokenInfo: async (_network: string, faucet: string) => {
     h.tokenCalls.push(faucet);
     if (h.tokenGate) await h.tokenGate;

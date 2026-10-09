@@ -122,6 +122,19 @@ If you sent a note with the Miden CLI, export it in full format and use the Rece
 miden export --note <note-id> --export-type full
 ```
 
+or make the link in the terminal with `npx notecheck receipt <note-id>.mno`.
+
+## The `notecheck` package
+
+The receipt and request logic is also an npm package with a CLI, in [`packages/notecheck`](packages/notecheck):
+
+```
+npm i notecheck @miden-sdk/miden-sdk
+npx notecheck verify "https://notecheck-miden.vercel.app/r#r1.…"
+```
+
+See its [README](packages/notecheck/README.md) and the format spec, [SPEC.md](packages/notecheck/SPEC.md). The app imports the package from source (the `notecheck` alias in `vite.config.ts`, `vitest.config.ts` and `tsconfig.app.json`), so both always run the same code.
+
 ## Running it
 
 Requires Node 22 or newer and Yarn 1.
@@ -131,6 +144,14 @@ yarn install
 yarn dev        # http://localhost:5173
 yarn build      # type check + production build
 yarn test       # unit and component tests
+```
+
+The package has its own scripts (its tests also run with `yarn test`):
+
+```
+yarn pkg:build  # compile packages/notecheck to dist/
+yarn pkg:test
+yarn pkg:pack   # npm pack --dry-run: what would be published
 ```
 
 Browser checks run against a running dev or preview server with your installed Chrome:

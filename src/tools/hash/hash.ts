@@ -1,6 +1,6 @@
 import { Felt, FeltArray, Poseidon2, Rpo256, type Word } from "@miden-sdk/miden-sdk";
-import { release } from "@/lib/wasm";
 import { MODULUS, parseUint } from "@/tools/felt/felt";
+import { release } from "notecheck";
 
 /** Bytes packed into one felt by `encodeString`. 2^32 - 1 < p, so every chunk is a valid felt. */
 export const BYTES_PER_FELT = 4;

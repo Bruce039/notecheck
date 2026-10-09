@@ -7,13 +7,12 @@ import {
   type BlockHeader,
 } from "@miden-sdk/miden-sdk";
 import { TESTNET_RECEIPT as R } from "./fixtures";
-import { toBase64 } from "./bytes";
-import { MEMO_MAX, decodeReceipt } from "./format";
-import { noteFileFromBase64 } from "./inspect";
+import { decodeReceipt, MEMO_MAX, noteFileFromBase64, toBase64 } from "notecheck";
 
 const h = vi.hoisted(() => ({ onChain: false, error: null as Error | null, rpcCalls: 0 }));
 
-vi.mock("@/lib/rpc", () => ({
+vi.mock("notecheck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("notecheck")>()),
   withRpc: async (_network: string, fn: (rpc: unknown) => Promise<unknown>) => {
     h.rpcCalls++;
     return fn({

@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { Note, NoteId, NoteInclusionProof, NoteRecipient, NoteScript, type FetchedNote } from "@miden-sdk/miden-sdk";
-import { TESTNET_RECEIPT as F } from "@/receipt/fixtures";
-import { inspectNoteFileBytes } from "@/receipt/inspect";
-import { parseAmount, pickPaymentNote, receiptIfCommitted, type ReceiptRpc } from "./payment";
-import { buildTestPayment } from "./testNote";
+import { TESTNET_RECEIPT as F } from "./fixtures.js";
+import { inspectNoteFileBytes } from "../src/inspect.js";
+import { pickPaymentNote, receiptIfCommitted, type ReceiptRpc } from "../src/payment.js";
+import { parseAmount } from "../src/tokens.js";
+import { buildTestPayment } from "./testNote.js";
 
 const base = { sender: F.sender, recipient: F.recipient, faucetId: F.faucetId, amount: 1_500_000n };
 const expected = { recipient: F.recipient, faucetId: F.faucetId, amount: 1_500_000n };

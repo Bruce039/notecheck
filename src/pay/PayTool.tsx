@@ -6,27 +6,21 @@ import { ReceiptLink } from "@/components/ReceiptLink";
 import { Hero } from "@/components/hero/Hero";
 import { Badge, Notice, ToolCard } from "@/components/ui";
 import { attempt } from "@/lib/attempt";
-import type { Network } from "@/lib/network";
-import { withRpc } from "@/lib/rpc";
-import { formatAmount, tokenInfo, type TokenInfo } from "@/lib/tokens";
 import { WalletButton } from "@/lib/wallet";
-import { toBase64 } from "@/receipt/bytes";
-import { MEMO_MAX, encodeReceipt, receiptUrl } from "@/receipt/format";
-import { noteFileFromBase64 } from "@/receipt/inspect";
-import { normalizeAccountId, parseAccountId, toBech32 } from "@/tools/address/account";
-import { release } from "@/lib/wasm";
-import { HRP } from "@/lib/network";
-import { decodeRequest, isRequestFragment, receiptMemoFor, type PaymentRequestV1 } from "@/request/format";
 import { useTokenInfo } from "@/request/useTokenInfo";
 import { RequestCard } from "@/request/RequestCard";
 import { requestAmountText, shortAddress } from "@/request/display";
 import { PayStepper } from "./Stepper";
 import "./pay.css";
 import {
-  noteIdOfBytes,
-  clearPending, loadPending, loadRecent, parseAmount, pickPaymentNote, removeRecent, saveRecent, savePending,
-  waitForReceipt, type PendingPayment, type RecentReceipt,
+  clearPending, loadPending, loadRecent, removeRecent, saveRecent, savePending, type PendingPayment, type RecentReceipt,
 } from "./payment";
+import {
+  decodeRequest, encodeReceipt, formatAmount, HRP, isRequestFragment, MEMO_MAX, type Network,
+  normalizeAccountId, noteFileFromBase64, noteIdOfBytes, parseAccountId, parseAmount, type PaymentRequestV1,
+  pickPaymentNote, receiptMemoFor, receiptUrl, release, toBase64, toBech32, tokenInfo, type TokenInfo,
+  waitForReceipt, withRpc,
+} from "notecheck";
 
 const MIN_PASSWORD = 8;
 const passwordError = (pw: string) =>
@@ -97,7 +91,10 @@ async function finishReceipt(
     savePending(record);
     onNoteKnown?.({ txHash: out.txHash, noteId: noteIdOfBytes(noteBytes) });
   }
-  const noteFile = await waitForReceipt((fn) => withRpc(record.network, fn), noteFileFromBase64(record.noteB64!));
+  const noteFile = await waitForReceipt((fn) => withRpc(record.network, fn), noteFileFromBase64(record.noteB64!))
+    .catch((e: unknown) => {
+      throw new Error(`${(e as Error).message} You can finish the receipt later from this page.`);
+    });
   const txId = record.chainTxId && /^0x[0-9a-f]{64}$/.test(record.chainTxId) ? record.chainTxId : undefined;
   const fragment = await encodeReceipt({
     v: 1,

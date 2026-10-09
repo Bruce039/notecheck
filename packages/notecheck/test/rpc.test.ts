@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { endpoint, networkFromHrp, NETWORKS, HRP } from "./network";
-import { rpcClient, withRpc } from "./rpc";
+import { endpoint, networkFromHrp, NETWORKS, HRP } from "../src/network.js";
+import { rpcClient, withRpc } from "../src/rpc.js";
 
 const tick = () => new Promise((r) => setTimeout(r, 5));
 

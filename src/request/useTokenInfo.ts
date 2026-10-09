@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Network } from "@/lib/network";
-import { tokenInfo, type TokenInfo } from "@/lib/tokens";
+import { type Network, tokenInfo, type TokenInfo } from "notecheck";
 
 /** Token metadata for a faucet: undefined while loading (or with no faucet), null when unknown. */
 export function useTokenInfo(network: Network, faucetHex: string | undefined): TokenInfo | null | undefined {

@@ -8,7 +8,11 @@ vi.mock("@/lib/wallet", () => ({
   WalletButton: () => <span>wallet-button-stub</span>,
 }));
 vi.mock("@miden-sdk/miden-wallet-adapter-react", () => ({ useWallet: () => ({ connected: false }) }));
-vi.mock("@/lib/rpc", () => ({ withRpc: () => new Promise(() => {}) }));
+vi.mock("notecheck", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("notecheck")>()),
+  withRpc: () => new Promise(() => {}),
+  tokenInfo: () => new Promise(() => {}),
+}));
 // Node 22+ shadows jsdom's localStorage with an unusable global; PayTool reads it on mount.
 vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => {}, removeItem: () => {}, clear: () => {} });
 

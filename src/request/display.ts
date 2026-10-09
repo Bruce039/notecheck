@@ -1,5 +1,4 @@
-import { formatAmount, type TokenInfo } from "@/lib/tokens";
-import type { PaymentRequestV1 } from "./format";
+import { formatAmount, type PaymentRequestV1, type TokenInfo } from "notecheck";
 
 export const shortAddress = (a: string) => (a.length > 18 ? `${a.slice(0, 10)}…${a.slice(-4)}` : a);
 

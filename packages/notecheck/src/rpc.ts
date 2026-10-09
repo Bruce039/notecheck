@@ -1,5 +1,5 @@
 import { RpcClient } from "@miden-sdk/miden-sdk";
-import { endpoint, type Network } from "./network";
+import { endpoint, type Network } from "./network.js";
 
 const clients = new Map<Network, RpcClient>();
 const queues = new Map<Network, Promise<unknown>>();
