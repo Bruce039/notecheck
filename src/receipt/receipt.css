@@ -31,7 +31,9 @@ body:has(.receipt) .app { max-width: 720px; }
 .receipt:has(.rc-verdict.rc-bad) { --rc-tone: var(--bad); }
 @keyframes rc-glow { from { opacity: 0; transform: scale(.92); } }
 
-.rc-toolbar { display: flex; justify-content: flex-end; animation: rc-fade .5s .5s ease both; }
+.rc-toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; animation: rc-fade .5s .5s ease both; }
+.rc-btn-icon { display: inline-flex; align-items: center; gap: 7px; }
+.rc-share-glyph { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
 /* ---------- The slip ---------- */
 
@@ -309,8 +311,69 @@ details[open] > summary .rc-chev { transform: rotate(90deg); }
 .rc-yes li::before { content: "✓"; color: var(--good); }
 .rc-no li::before { content: "✗"; color: var(--muted); }
 
-.rc-foot { border-top: 1px solid var(--border); padding: 14px 24px 18px; font-size: 0.8rem; color: var(--muted); }
+.rc-foot {
+  border-top: 1px solid var(--border); padding: 16px 24px 20px; font-size: 0.8rem; color: var(--muted);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 24px; align-items: start;
+}
+.rc-foot-text { min-width: 0; }
 .rc-foot p { margin: 0 0 6px; }
+
+/* ---------- Scan to check: the link as a QR code, dark on white in every theme ---------- */
+
+.rc-qr { display: flex; flex-direction: column; align-items: center; }
+.rc-qr-toggle { display: none; align-items: center; gap: 6px; font-size: 0.85rem; }
+.rc-qr-glyph { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+.rc-qr-body { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rc-qr-tile {
+  padding: 4px; border-radius: 12px; line-height: 0;
+  /* Scanners need dark modules on a light ground, so the tile stays white in dark mode too. */
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 8%, transparent), 0 8px 20px -12px color-mix(in srgb, var(--text) 30%, transparent);
+}
+/* 2 CSS px per module: about 190 px for a typical receipt link, and sharp at 1x. */
+.rc-qr-svg { display: block; width: calc(var(--qr-total, 80) * 2px); height: auto; border-radius: 8px; }
+.rc-qr-cap { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; max-width: 190px; }
+.rc-qr-cap strong { color: var(--text); font-size: 0.85rem; font-weight: 650; }
+.rc-qr-cap > span { font-size: 0.74rem; }
+.rc-foot .rc-qr-cap { margin: 0; }
+.rc-qr-pw {
+  margin-top: 4px; padding: 2px 9px; border-radius: 999px; font-weight: 600;
+  color: var(--accent); background: var(--accent-soft);
+}
+.rc-qr-none { max-width: 180px; font-size: 0.78rem; }
+
+/* ---------- Share image dialog ---------- */
+
+.rc-share {
+  width: min(600px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; overflow: auto;
+  border: 1px solid var(--border); border-radius: 16px;
+  background: var(--surface); color: var(--text);
+  box-shadow: var(--shadow-lg, 0 30px 70px -30px rgb(0 0 0 / 0.5));
+}
+.rc-share[open] { animation: rc-pop-in .28s var(--rc-ease, ease) both; }
+/* A neutral scrim, the same in both themes. */
+.rc-share::backdrop { background: rgb(12 12 20 / 0.5); backdrop-filter: blur(2px); }
+@keyframes rc-pop-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+.rc-share-body { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 20px; }
+.rc-share-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rc-share-head h2 { margin: 0; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; }
+.rc-share-x {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 8px;
+  border: 1px solid transparent; background: none; color: var(--muted); cursor: pointer;
+}
+.rc-share-x:hover { color: var(--text); border-color: var(--border); background: var(--surface-2); }
+.rc-share-x svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.rc-share-preview {
+  aspect-ratio: 1200 / 630; display: grid; place-items: center; overflow: hidden;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2);
+}
+.rc-share-preview img { display: block; width: 100%; height: 100%; animation: rc-fade .25s ease both; }
+.rc-share-check { display: inline-flex; align-items: center; gap: 9px; font-size: 0.92rem; font-weight: 500; cursor: pointer; width: fit-content; }
+.rc-share-check input { width: 17px; height: 17px; margin: 0; accent-color: var(--accent); }
+.rc-share-note { margin: 0; }
+.rc-share-done { margin: 0; color: var(--text); }
+.rc-share-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .rc-foot .link { font-size: 0.85rem; }
 .rc-url { font-family: var(--mono); font-size: 0.7rem; overflow-wrap: anywhere; word-break: break-all; }
 
@@ -388,6 +451,14 @@ details[open] > summary .rc-chev { transform: rotate(90deg); }
   .rc-row, .rc-tech .rc-row, .rc-skel-row { grid-template-columns: 1fr; }
   .rc-num { font-size: 2.6rem; }
   .rc-asset .rc-num { font-size: 2rem; }
+  .rc-foot { grid-template-columns: 1fr; }
+  .rc-qr { align-items: flex-start; }
+  .rc-qr-toggle { display: inline-flex; }
+  .rc-qr:not(.is-open) .rc-qr-body { display: none; }
+  .rc-qr.is-open .rc-qr-body { margin-top: 12px; flex-direction: row; align-items: center; gap: 14px; }
+  .rc-qr.is-open .rc-qr-cap { align-items: flex-start; text-align: left; }
+  .rc-share-body { padding: 16px; }
+  .rc-share-actions .btn { flex: 1 1 auto; }
 }
 
 /* ---------- Reduced motion: final states, no movement ---------- */
@@ -438,4 +509,14 @@ details[open] > summary .rc-chev { transform: rotate(90deg); }
   .receipt details.rc-expand > summary::-webkit-details-marker { display: none; }
   .rc-row:hover { background: none; }
   .rc-row, .rc-memo, .rc-proves li, .rc-verdict { break-inside: avoid; }
+  /* The QR is always printed so a paper receipt can be scanned and checked again. */
+  .rc-share { display: none !important; }
+  .rc-foot { grid-template-columns: minmax(0, 1fr) auto; break-inside: avoid; }
+  .rc-qr, .rc-qr-body { display: flex !important; }
+  .rc-qr { align-items: center; }
+  .rc-qr.is-open .rc-qr-body { margin: 0; flex-direction: column; }
+  .rc-qr-tile { padding: 0; border: 0; box-shadow: none; border-radius: 0; }
+  .rc-qr-svg { width: 35mm; border-radius: 0; }
+  .rc-qr-cap { max-width: 40mm; align-items: center !important; text-align: center !important; }
+  .rc-qr-pw { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

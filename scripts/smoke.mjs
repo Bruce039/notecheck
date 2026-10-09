@@ -63,7 +63,7 @@ await page.screenshot({ path: `${out}/fee.png`, fullPage: true });
 // M6
 await page.getByRole("button", { name: "Allowlist", exact: true }).click();
 await page.getByRole("button", { name: "example", exact: true }).first().click().catch(() => page.locator(".tool input").first().fill("mtst1apus5hps3cnxrq2e5fhnynez7v5sytsk"));
-await page.getByRole("button", { name: /Check/ }).click();
+await page.getByRole("button", { name: /^Check on/ }).click();
 await page.waitForTimeout(2500);
 console.log("M6:", (await page.locator(".tool").innerText()).replace(/\s+/g, " ").slice(0, 420));
 await page.screenshot({ path: `${out}/allowlist.png`, fullPage: true });

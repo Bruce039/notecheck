@@ -55,8 +55,14 @@ vi.mock("@/lib/tokens", async (importOriginal) => ({
 }));
 vi.mock("@miden-sdk/miden-wallet-adapter-react", () => ({ useWallet: () => h.wallet }));
 vi.mock("@/lib/wallet", () => ({ WalletButton: () => <button type="button">Connect wallet (stub)</button> }));
+// jsdom has no canvas: the card renderer is replaced; its drawing is tested in view/shareCard.test.ts.
+vi.mock("./view/shareCard", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./view/shareCard")>()),
+  renderShareCard: vi.fn(async () => ({ blob: new Blob(["png"], { type: "image/png" }), dataUrl: "data:image/png;base64,AAAA" })),
+}));
 
 import { ReceiptPage } from "./ReceiptPage";
+import { renderShareCard } from "./view/shareCard";
 
 const TAG = 1961623552;
 
@@ -449,6 +455,123 @@ describe("ReceiptPage", () => {
     expect(screen.getByRole("heading", { name: /Not found on devnet/ })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: CONFIRMED })).not.toBeInTheDocument();
     expect(h.tokenCalls).toEqual([]);
+  });
+
+  describe("QR code and share image", () => {
+    const qr = () => screen.queryByRole("img", { name: "QR code for this receipt link" });
+    const shareButton = () => screen.queryByRole("button", { name: "Share image" });
+    const render_ = vi.mocked(renderShareCard);
+    beforeEach(() => render_.mockClear());
+
+    it("shows a QR code of the current link for a confirmed receipt", async () => {
+      h.chain = { notes: [fixtureOnChain()], spentAt: R.spentAt };
+      await show(await encodeReceipt(base));
+      await heading(CONFIRMED);
+      const svg = qr()!;
+      expect(svg.tagName.toLowerCase()).toBe("svg");
+      expect(Number(svg.getAttribute("data-modules"))).toBeGreaterThanOrEqual(21);
+      expect(svg.querySelector("path")!.getAttribute("d")).toMatch(/^M0 0h7v1h-7z/);
+      expect(screen.getByText("Scan to check")).toBeInTheDocument();
+      expect(screen.queryByText("Password required")).not.toBeInTheDocument();
+      // A toggle for small screens, hidden by CSS on wide ones.
+      const toggle = screen.getByRole("button", { name: "Show QR code" });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await userEvent.click(toggle);
+      expect(screen.getByRole("button", { name: "Hide QR code" })).toHaveAttribute("aria-expanded", "true");
+    });
+
+    it("has no QR code or share image when the payment is not found", async () => {
+      await show(await encodeReceipt(base));
+      await heading(/Not found on testnet/);
+      expect(qr()).toBeNull();
+      expect(shareButton()).toBeNull();
+    });
+
+    it("offers no share image for a warning verdict", async () => {
+      const f = p2ideFile(1000, null);
+      h.chain = { notes: [f.onChain], tip: 1500 };
+      await show(await encodeReceipt({ ...base, noteFile: f.b64 }));
+      await heading(/can still take it back/);
+      expect(shareButton()).toBeNull();
+      expect(screen.getByRole("button", { name: "Save as PDF" })).toBeInTheDocument();
+    });
+
+    it("notes that a protected receipt's QR code still needs the password", async () => {
+      h.chain = { notes: [fixtureOnChain()] };
+      const fragment = await encodeReceipt(base, "pw");
+      await show(fragment);
+      await userEvent.type(await screen.findByLabelText("Password"), "pw");
+      await userEvent.click(screen.getByRole("button", { name: "Open receipt" }));
+      await heading(CONFIRMED);
+      expect(qr()).toBeInTheDocument();
+      expect(screen.getByText("Password required")).toBeInTheDocument();
+      await userEvent.click(shareButton()!);
+      await waitFor(() => expect(render_).toHaveBeenCalled());
+      expect(render_.mock.calls[0][0]).toMatchObject({ passwordRequired: true, url: expect.stringContaining(`#${fragment}`) });
+      expect(render_.mock.calls[0][0].url).not.toContain("pw");
+    });
+
+    it("renders the image without the memo, hides the amount on request, and downloads it", async () => {
+      const createObjectURL = vi.fn(() => "blob:receipt");
+      const revoke = vi.fn();
+      Object.assign(URL, { createObjectURL, revokeObjectURL: revoke });
+      const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+      h.chain = { notes: [fixtureOnChain()], spentAt: R.spentAt };
+      await show(await encodeReceipt({ ...base, memo: "Invoice #42" }));
+      await heading(CONFIRMED);
+      await userEvent.click(shareButton()!);
+      const dialog = await screen.findByRole("dialog", { name: "Share an image of this receipt" });
+      expect(dialog).toHaveTextContent("Anyone who scans it can open the receipt.");
+      await waitFor(() => expect(render_).toHaveBeenCalledTimes(1));
+      const first = render_.mock.calls[0][0];
+      expect(first).toMatchObject({
+        hideAmount: false, received: true, network: "testnet", noteId: R.noteId, passwordRequired: false,
+        amount: { value: "1", unit: "USDCX", more: false },
+      });
+      expect(JSON.stringify(first)).not.toContain("Invoice");
+      expect(await within(dialog).findByRole("img", { name: "Preview of the receipt image" })).toHaveAttribute("src", "data:image/png;base64,AAAA");
+
+      const hide = within(dialog).getByRole("checkbox", { name: "Hide amount" });
+      expect(hide).not.toBeChecked();
+      await userEvent.click(hide);
+      await waitFor(() => expect(render_).toHaveBeenCalledTimes(2));
+      expect(render_.mock.calls[1][0].hideAmount).toBe(true);
+      await within(dialog).findByRole("img", { name: "Preview of the receipt image, amount hidden" });
+
+      // No Web Share in jsdom: the image is downloaded.
+      await userEvent.click(within(dialog).getByRole("button", { name: "Download image" }));
+      expect(createObjectURL).toHaveBeenCalledTimes(1);
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(click.mock.contexts[0]).toMatchObject({ download: "notecheck-receipt.png", href: "blob:receipt" });
+      click.mockRestore();
+
+      await userEvent.keyboard("{Escape}");
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    });
+
+    it("hands the image to the share sheet when files can be shared", async () => {
+      const share = vi.fn(async () => {});
+      Object.assign(navigator, { share, canShare: () => true });
+      try {
+        h.chain = { notes: [fixtureOnChain()] };
+        await show(await encodeReceipt(base));
+        await heading(CONFIRMED);
+        await userEvent.click(shareButton()!);
+        const dialog = await screen.findByRole("dialog");
+        await within(dialog).findByRole("img", { name: /^Preview/ });
+        await userEvent.click(within(dialog).getByRole("button", { name: "Share…" }));
+        expect(share).toHaveBeenCalledTimes(1);
+        const arg = (share.mock.calls[0] as unknown as [ShareData])[0];
+        expect(arg.title).toBe("Payment receipt · 1 USDCX");
+        expect(arg.files![0].name).toBe("notecheck-receipt.png");
+        expect(arg.files![0].type).toBe("image/png");
+        expect(render_.mock.calls[0][0].received).toBe(false);
+        await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+        await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      } finally {
+        Object.assign(navigator, { share: undefined, canShare: undefined });
+      }
+    });
   });
 
   describe("P2IDE receipts", () => {

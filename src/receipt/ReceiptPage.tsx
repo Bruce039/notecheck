@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { useWallet } from "@miden-sdk/miden-wallet-adapter-react";
 import type { RpcClient } from "@miden-sdk/miden-sdk";
 import { Badge, Notice } from "@/components/ui";
@@ -18,6 +18,9 @@ import {
   assess, block, cleanMemo, fmtLocal, fmtUtc, isTransient, mismatchReason, type Included, type Tip,
 } from "./view/status";
 import { Chevron, CopyGlyph, Perforation, PaperGrain, SlipSkeleton, Stamp, VerdictIcon } from "./view/visuals";
+import { ScanToCheck } from "./view/qr";
+import type { ShareCardData } from "./view/shareCard";
+import { ShareImageDialog } from "./view/shareDialog";
 import "./receipt.css";
 
 /** Delay before the single automatic retry of a transient RPC error. */
@@ -314,6 +317,17 @@ function amountText(result: Included, tokens: (TokenInfo | null)[]): string | nu
   return (t?.verified ? `${formatAmount(a.amount, t.decimals)} ${t.symbol}` : `${formatAmount(a.amount, 0)} base units`) + more;
 }
 
+/** The first amount for the share image: token units when verified, else base units. */
+function cardAmount(result: Included, tokens: (TokenInfo | null)[]): ShareCardData["amount"] {
+  const a = result.summary.assets[0];
+  if (!a) return null;
+  const t = tokens[0];
+  const more = result.summary.assets.length > 1;
+  return t?.verified
+    ? { value: formatAmount(a.amount, t.decimals), unit: t.symbol, more }
+    : { value: formatAmount(a.amount, 0), unit: "base units", more };
+}
+
 function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: Included; onRecheck: () => void }) {
   const { receipt, tokens, tip, checkedAt } = checked;
   const net = receipt.network;
@@ -322,6 +336,19 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
   const memo = receipt.memo ? cleanMemo(receipt.memo) : "";
   const amount = amountText(result, tokens);
   const checkedText = fmtLocal(checkedAt);
+  // The link as opened, fragment included; for a protected receipt that is the encrypted link (no password).
+  const url = window.location.href;
+  const passwordRequired = isEncryptedFragment(fragmentNow());
+  const [sharing, setSharing] = useState(false);
+  const shareData = useMemo(() => ({
+    amount: cardAmount(result, tokens),
+    received: result.spentAt !== null && a.received === "yes",
+    network: net,
+    noteId: s.noteId,
+    checked: checkedText,
+    url,
+    passwordRequired,
+  }), [result, tokens, a.received, net, s.noteId, checkedText, url, passwordRequired]);
 
   useEffect(() => {
     const prev = document.title;
@@ -351,8 +378,17 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
   return (
     <>
       <div className="rc-toolbar rc-noprint">
+        {/* Only a chain-confirmed verdict can be turned into an image. */}
+        {a.verdict === "good" && (
+          <button type="button" className="btn rc-btn-icon" onClick={() => setSharing(true)} aria-haspopup="dialog">
+            <ShareGlyph />Share image
+          </button>
+        )}
         <button type="button" className="btn" onClick={() => window.print()}>Save as PDF</button>
       </div>
+      {sharing && a.verdict === "good" && (
+        <ShareImageDialog data={shareData} title={amount ? `Payment receipt · ${amount}` : "Payment receipt"} onClose={() => setSharing(false)} />
+      )}
       <Slip labelledBy="rc-verdict">
         <div className="rc-printonly rc-brand">
           <LogoMark size={22} /> <strong>{BRAND.name}</strong> · Payment receipt
@@ -459,10 +495,13 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
         </details>
 
         <div className="rc-foot rc-rise" style={step(5)}>
-          <p>Anyone who has this link can see this payment, and only this payment. Share it only with the people who need it.</p>
-          <p className="rc-printonly">Checked on {checkedText}{amount ? ` · ${amount}` : ""}</p>
-          <p className="rc-printonly rc-url">{window.location.href}</p>
-          <button type="button" className="link rc-noprint" onClick={onRecheck}>Check again</button>
+          <div className="rc-foot-text">
+            <p>Anyone who has this link can see this payment, and only this payment. Share it only with the people who need it.</p>
+            <p className="rc-printonly">Checked on {checkedText}{amount ? ` · ${amount}` : ""}</p>
+            <p className="rc-printonly rc-url">{url}</p>
+            <button type="button" className="link rc-noprint" onClick={onRecheck}>Check again</button>
+          </div>
+          <ScanToCheck url={url} passwordRequired={passwordRequired} />
         </div>
       </Slip>
 
@@ -548,5 +587,14 @@ function ImportToWallet({ noteFileB64 }: { noteFileB64: string }) {
       {state.done && <Notice tone="info">Imported. Your wallet can now claim the note.</Notice>}
       {state.error && <Notice tone="bad">{state.error}</Notice>}
     </details>
+  );
+}
+
+function ShareGlyph() {
+  return (
+    <svg className="rc-share-glyph" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
+      <path d="M8 10V2M5 4.8L8 1.8l3 3" />
+      <path d="M5.5 7H4.2A1.7 1.7 0 0 0 2.5 8.7v4.6A1.7 1.7 0 0 0 4.2 15h7.6a1.7 1.7 0 0 0 1.7-1.7V8.7A1.7 1.7 0 0 0 11.8 7h-1.3" />
+    </svg>
   );
 }
