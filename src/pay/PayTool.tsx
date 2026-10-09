@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Transaction } from "@miden-sdk/miden-wallet-adapter-base";
 import { useWallet } from "@miden-sdk/miden-wallet-adapter-react";
+import { ExplorerLink } from "@/components/ExplorerLink";
 import { ReceiptLink } from "@/components/ReceiptLink";
 import { Hero } from "@/components/hero/Hero";
 import { Badge, Notice, ToolCard } from "@/components/ui";
@@ -22,6 +23,7 @@ import { requestAmountText, shortAddress } from "@/request/display";
 import { PayStepper } from "./Stepper";
 import "./pay.css";
 import {
+  noteIdOfBytes,
   clearPending, loadPending, loadRecent, parseAmount, pickPaymentNote, removeRecent, saveRecent, savePending,
   waitForReceipt, type PendingPayment, type RecentReceipt,
 } from "./payment";
@@ -47,9 +49,12 @@ type Holding = { faucetId: string; walletFaucetId: string; amount: bigint; token
 /** `at` is the PayStepper step: 0 wallet prompt, 1 wallet working, 2 on chain, 3 building the receipt. */
 type Stage =
   | { step: "form" }
-  | { step: "progress"; at: number; startedAt: number }
-  | { step: "done"; url: string; protectedBy: boolean; requester?: string; startedAt: number }
-  | { step: "error"; message: string; saved?: boolean; at: number; startedAt: number };
+  | { step: "progress"; at: number; startedAt: number; links?: Links }
+  | { step: "done"; url: string; protectedBy: boolean; requester?: string; startedAt: number; links?: Links }
+  | { step: "error"; message: string; saved?: boolean; at: number; startedAt: number; links?: Links };
+
+/** Ids the explorer can show: the on-chain tx (from the wallet) and the payment note. */
+type Links = { network: Network; txHash?: string; noteId?: string };
 
 type WaitFn = NonNullable<ReturnType<typeof useWallet>["waitForTransaction"]>;
 
@@ -65,7 +70,7 @@ const errorText = (e: unknown) => {
  */
 async function finishReceipt(
   p: PendingPayment, wait: WaitFn | undefined, connected: boolean, password?: string,
-  onNoteKnown?: () => void,
+  onNoteKnown?: (known: { txHash?: string; noteId: string }) => void,
 ): Promise<string> {
   let record = p;
   if (!record.noteB64) {
@@ -90,7 +95,7 @@ async function finishReceipt(
     });
     record = { ...record, noteB64: toBase64(noteBytes), chainTxId: out.txHash };
     savePending(record);
-    onNoteKnown?.();
+    onNoteKnown?.({ txHash: out.txHash, noteId: noteIdOfBytes(noteBytes) });
   }
   const noteFile = await waitForReceipt((fn) => withRpc(record.network, fn), noteFileFromBase64(record.noteB64!));
   const txId = record.chainTxId && /^0x[0-9a-f]{64}$/.test(record.chainTxId) ? record.chainTxId : undefined;
@@ -260,19 +265,25 @@ export function PayTool({ network }: { network: Network }) {
   const run = async (p: PendingPayment, pw?: string, opts: { startedAt?: number; requester?: string } = {}) => {
     const startedAt = opts.startedAt ?? Date.now();
     let at = p.noteB64 ? 3 : 1;
-    setStage({ step: "progress", at, startedAt });
+    let links: Links = {
+      network: p.network,
+      txHash: p.chainTxId,
+      noteId: p.noteB64 ? noteIdOfBytes(noteFileFromBase64(p.noteB64)) : undefined,
+    };
+    setStage({ step: "progress", at, startedAt, links });
     try {
-      const url = await finishReceipt(p, waitForTransaction, connected, pw, () => {
+      const url = await finishReceipt(p, waitForTransaction, connected, pw, (known) => {
         at = 3;
-        setStage({ step: "progress", at, startedAt });
+        links = { ...links, ...known };
+        setStage({ step: "progress", at, startedAt, links });
       });
       setPending(loadPending());
       setRecent(loadRecent());
       if (opts.requester) dismissRequest();
-      setStage({ step: "done", url, protectedBy: !!pw, requester: opts.requester, startedAt });
+      setStage({ step: "done", url, protectedBy: !!pw, requester: opts.requester, startedAt, links });
     } catch (e) {
       setPending(loadPending());
-      setStage({ step: "error", message: errorText(e), saved: loadPending().some((x) => x.txId === p.txId), at, startedAt });
+      setStage({ step: "error", message: errorText(e), saved: loadPending().some((x) => x.txId === p.txId), at, startedAt, links });
     }
   };
 
@@ -356,6 +367,7 @@ export function PayTool({ network }: { network: Network }) {
                 finish receipt
               </button>
               <button type="button" className="link" onClick={() => { clearPending(p.txId); setPending(loadPending()); }}>discard</button>
+              <ExplorerLink network={p.network} kind="tx" id={p.chainTxId}>transaction</ExplorerLink>
             </div>
           ))}
           <div className="input pending-pw">
@@ -455,10 +467,16 @@ export function PayTool({ network }: { network: Network }) {
         </div>
       )}
 
-      {stage.step === "progress" && <PayStepper at={stage.at} startedAt={stage.startedAt} status="running" />}
+      {stage.step === "progress" && (
+        <>
+          <PayStepper at={stage.at} startedAt={stage.startedAt} status="running" />
+          <PayLinks links={stage.links} pending />
+        </>
+      )}
       {stage.step === "error" && (
         <div className="stack">
           <PayStepper at={stage.at} startedAt={stage.startedAt} status="failed" />
+          <PayLinks links={stage.links} />
           <Notice tone="bad">{stage.message}</Notice>
           {stage.saved && <p className="muted small">If the payment still goes through, you can finish its receipt later from this page. Don't send it again.</p>}
           <div><button type="button" className="btn" onClick={reset}>Back</button></div>
@@ -488,6 +506,7 @@ export function PayTool({ network }: { network: Network }) {
           </div>
           <div className="pay-reveal">
             <ReceiptLink url={stage.url} />
+            <PayLinks links={stage.links} />
             <p className="muted small">
               Anyone with this link{stage.protectedBy ? " and the password" : ""} can see this payment.
               Your wallet also delivers the note to the recipient privately; if that doesn't arrive, the recipient
@@ -499,5 +518,18 @@ export function PayTool({ network }: { network: Network }) {
       )}
     </ToolCard>
     </>
+  );
+}
+
+/** Explorer links for the payment as soon as the wallet reports its on-chain ids. */
+function PayLinks({ links, pending }: { links?: Links; pending?: boolean }) {
+  if (!links || (!links.txHash && !links.noteId)) {
+    return pending ? <p className="muted small">An explorer link appears here once the wallet reports the transaction.</p> : null;
+  }
+  return (
+    <div className="explorer-links">
+      <ExplorerLink network={links.network} kind="tx" id={links.txHash}>Transaction on Midenscan</ExplorerLink>
+      <ExplorerLink network={links.network} kind="note" id={links.noteId}>Payment note on Midenscan</ExplorerLink>
+    </div>
   );
 }

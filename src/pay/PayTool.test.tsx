@@ -452,10 +452,15 @@ describe("PayTool", () => {
       expect(currentStep()).toBe("Wallet is proving and sending");
       expect(stepStates()).toEqual(["done", "active", "todo", "todo", "todo"]);
       expect(loadPending()).toHaveLength(1);
+      // No on-chain id yet, so no explorer link.
+      expect(screen.queryByRole("link", { name: /Transaction on Midenscan/ })).not.toBeInTheDocument();
 
       await act(async () => confirmed.resolve({ txHash: TX_HASH, outputNotes: [payment().note] }));
       await waitFor(() => expect(currentStep()).toBe("Building your receipt"));
       expect(stepStates()).toEqual(["done", "done", "done", "active", "todo"]);
+      // As soon as the wallet reports the transaction, its explorer links show up.
+      expect(screen.getByRole("link", { name: /Transaction on Midenscan/ })).toHaveAttribute("href", `https://testnet.midenscan.com/tx/${TX_HASH}`);
+      expect(screen.getByRole("link", { name: /Payment note on Midenscan/ }).getAttribute("href")).toMatch(/^https:\/\/testnet\.midenscan\.com\/note\/0x[0-9a-f]{64}$/);
 
       await act(async () => gate.resolve());
       await receiptLink();

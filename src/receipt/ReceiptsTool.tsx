@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent } from "react";
+import { ExplorerLink } from "@/components/ExplorerLink";
 import { ReceiptLink } from "@/components/ReceiptLink";
 import { EXAMPLE_RECEIPT_PATH } from "./example";
 import { Badge, Field, Notice, TextInput, ToolCard } from "@/components/ui";
@@ -139,6 +140,7 @@ function CreateReceipt({ network }: { network: Network }) {
             <Notice>This note isn't on {network} (yet). The link will show "not found" until it is committed. Check the network selector.</Notice>
           )}
           <Field label="Note ID" value={loaded.summary.noteId} />
+          <ExplorerLink network={network} kind="note" id={loaded.summary.noteId}>See the note on Midenscan</ExplorerLink>
           <TextInput label={`Memo (optional, up to ${MEMO_MAX} characters)`} value={memo} onChange={(v) => setMemo(v.slice(0, MEMO_MAX))} placeholder="Invoice #42" />
           <div className="input">
             <label htmlFor="receipt-new-pw" className="input-label">Password (optional)</label>

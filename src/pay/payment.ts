@@ -170,3 +170,14 @@ export function removeRecent(url: string): void {
     localStorage.setItem(RECENT_KEY, JSON.stringify(loadRecent().filter((x) => x.url !== url)));
   } catch { /* ignore */ }
 }
+
+/** Note ID (0x hex) of serialized Note bytes, for display and explorer links. */
+export function noteIdOfBytes(noteBytes: Uint8Array): string {
+  const note = Note.deserialize(noteBytes);
+  try {
+    const id = note.id();
+    const hex = id.toString();
+    release(id);
+    return hex;
+  } finally { release(note); }
+}

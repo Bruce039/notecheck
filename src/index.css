@@ -396,3 +396,8 @@ footer { padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--borde
 }
 
 .nch { margin-bottom: 16px; }
+
+.explorer-link { display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem; text-decoration: none; }
+.explorer-link:hover { text-decoration: underline; }
+.explorer-link svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.explorer-links { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { ExplorerLink } from "@/components/ExplorerLink";
 import { useWallet } from "@miden-sdk/miden-wallet-adapter-react";
 import type { RpcClient } from "@miden-sdk/miden-sdk";
 import { Badge, Notice } from "@/components/ui";
@@ -430,10 +431,10 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
           <summary><Chevron />Technical details (for verification)</summary>
           <dl className="rc-rows rc-tech">
             <Row label="Note ID" copy={s.noteId} hint="One payment = one note ID. Record it to avoid the same payment being presented twice.">
-              <code>{s.noteId}</code>
+              <code>{s.noteId}</code> <ExplorerLink network={net} kind="note" id={s.noteId}>Midenscan</ExplorerLink>
             </Row>
-            <Row label="Recipient account" copy={s.recipient}><code>{s.recipient}</code></Row>
-            <Row label="Sender account" copy={s.sender}><code>{s.sender}</code></Row>
+            <Row label="Recipient account" copy={s.recipient}><code>{s.recipient}</code> <ExplorerLink network={net} kind="account" id={s.recipient}>Midenscan</ExplorerLink></Row>
+            <Row label="Sender account" copy={s.sender}><code>{s.sender}</code> <ExplorerLink network={net} kind="account" id={s.sender}>Midenscan</ExplorerLink></Row>
             {s.assets.map((x, i) => (
               <Row
                 key={x.faucetId} label={s.assets.length > 1 ? `Token faucet ${i + 1}` : "Token faucet"} copy={x.faucetId}
@@ -442,9 +443,9 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
                 <code>{x.faucetId}</code>
               </Row>
             ))}
-            <Row label="Included in block">{block(result.inclusionBlock)} · {fmtUtc(result.inclusionTime)}</Row>
+            <Row label="Included in block">{block(result.inclusionBlock)} · {fmtUtc(result.inclusionTime)} <ExplorerLink network={net} kind="block" id={result.inclusionBlock}>Midenscan</ExplorerLink></Row>
             <Row label="Spent in block">
-              {result.spentAt === null ? "Not spent yet" : <>{block(result.spentAt)}{result.spentTime !== null && ` · ${fmtUtc(result.spentTime)}`}</>}
+              {result.spentAt === null ? "Not spent yet" : <>{block(result.spentAt)}{result.spentTime !== null && ` · ${fmtUtc(result.spentTime)}`} <ExplorerLink network={net} kind="block" id={result.spentAt}>Midenscan</ExplorerLink></>}
             </Row>
             <Row label="Note type">{s.kind} · {s.visibility} note</Row>
             {s.kind === "P2IDE" && (
@@ -465,7 +466,7 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
               </Row>
             )}
             {receipt.txId && (
-              <Row label="Transaction ID" copy={receipt.txId} hint="Claimed by the sender, not checked"><code>{receipt.txId}</code></Row>
+              <Row label="Transaction ID" copy={receipt.txId} hint="Claimed by the sender, not checked"><code>{receipt.txId}</code> <ExplorerLink network={net} kind="tx" id={receipt.txId}>Midenscan</ExplorerLink></Row>
             )}
           </dl>
           <p className="muted small">Checking asks the Miden node about this note; the node can see when it is spent.</p>
@@ -499,7 +500,10 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
             <p>Anyone who has this link can see this payment, and only this payment. Share it only with the people who need it.</p>
             <p className="rc-printonly">Checked on {checkedText}{amount ? ` · ${amount}` : ""}</p>
             <p className="rc-printonly rc-url">{url}</p>
-            <button type="button" className="link rc-noprint" onClick={onRecheck}>Check again</button>
+            <div className="explorer-links rc-noprint">
+              <button type="button" className="link" onClick={onRecheck}>Check again</button>
+              <ExplorerLink network={net} kind="note" id={s.noteId}>See the note on Midenscan</ExplorerLink>
+            </div>
           </div>
           <ScanToCheck url={url} passwordRequired={passwordRequired} />
         </div>

@@ -171,7 +171,18 @@ describe("ReceiptPage", () => {
     expect(screen.getByText(/^83,790 · /)).toBeInTheDocument();
     expect(screen.getByText(/^83,793/)).toBeInTheDocument();
     expect(screen.getByText("P2ID · private note")).toBeInTheDocument();
-    expect(screen.getByText("Transaction ID").parentElement).toHaveTextContent(`${R.txId}CopyClaimed by the sender, not checked`);
+    expect(screen.getByText("Transaction ID").parentElement).toHaveTextContent(new RegExp(`${R.txId}.*Midenscan.*Copy.*Claimed by the sender, not checked`));
+    // Explorer links for the note, both accounts, the blocks and the claimed transaction.
+    const hrefs = Array.from(document.querySelectorAll<HTMLAnchorElement>("a.explorer-link")).map((a) => a.getAttribute("href"));
+    expect(hrefs).toEqual(expect.arrayContaining([
+      `https://testnet.midenscan.com/note/${R.noteId}`,
+      `https://testnet.midenscan.com/account/${R.recipient}`,
+      `https://testnet.midenscan.com/account/${R.sender}`,
+      "https://testnet.midenscan.com/block/83790",
+      "https://testnet.midenscan.com/block/83793",
+      `https://testnet.midenscan.com/tx/${R.txId}`,
+    ]));
+    for (const a of document.querySelectorAll("a.explorer-link")) expect(a).toHaveAttribute("rel", "noopener noreferrer");
     expect(screen.getByText("Created").parentElement).toHaveTextContent("2026-10-09 12:00 UTCClaimed by the sender, not checked");
     // Each copy button names what it copies.
     for (const name of ["Copy paid to", "Copy paid from", "Copy note ID", "Copy sender account", "Copy transaction ID"]) {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ExplorerLink } from "@/components/ExplorerLink";
 import { Badge, Field, Notice, TextInput, ToolCard } from "@/components/ui";
 import { attempt } from "@/lib/attempt";
 import { HRP, NETWORKS, type Network } from "@/lib/network";
@@ -32,6 +33,7 @@ export function AddressTool({ network }: { network: Network }) {
               The account ID is the same on every network; only the prefix differs.
             </Notice>
           )}
+          <ExplorerLink network={network} kind="account" id={a.bech32[network]}>View this account on Midenscan</ExplorerLink>
           <div className="badges">
             <Badge tone={a.visibility === "public" ? "good" : "neutral"}>{a.visibility} state</Badge>
             <Badge>ID version {a.version}</Badge>
