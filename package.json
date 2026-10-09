@@ -22,6 +22,7 @@
     "@miden-sdk/miden-wallet-adapter-miden": "0.17.3",
     "@miden-sdk/miden-wallet-adapter-react": "0.17.3",
     "@miden-sdk/react": "0.17.3",
+    "qrcode-generator": "2.0.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
