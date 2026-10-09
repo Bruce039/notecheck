@@ -122,7 +122,7 @@ function Toolbox() {
           <label className="net">
             <span className="sr-only">Network</span>
             <select value={network} onChange={(e) => setState((s) => ({ ...s, network: e.target.value as Network }))}>
-              {NETWORKS.map((n) => <option key={n} value={n}>{n}</option>)}
+              {NETWORKS.map((n) => <option key={n} value={n}>{n === "mainnet" ? "mainnet (soon)" : n}</option>)}
             </select>
           </label>
         </div>
