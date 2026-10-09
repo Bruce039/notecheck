@@ -401,3 +401,19 @@ footer { padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--borde
 .explorer-link:hover { text-decoration: underline; }
 .explorer-link svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .explorer-links { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
+
+/* Site footer */
+.site-footer { margin-top: 40px; padding: 28px 0 8px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); text-align: left; font-size: 0.85rem; color: var(--muted); }
+.sf-grid { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .sf-grid { grid-template-columns: 1.6fr 1fr 1fr 1fr; } }
+.sf-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; margin-bottom: 8px; }
+.sf-brand .wordmark { font-size: 1.1rem; }
+.sf-about p { margin: 0 0 10px; }
+.sf-facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.sf-facts b { color: var(--text); font-weight: 600; }
+.sf-col h2 { font-family: var(--mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 4px 0 10px; }
+.sf-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; }
+.sf-col a { color: var(--text); text-decoration: none; opacity: 0.85; transition: color .2s, opacity .2s; }
+.sf-col a:hover { color: var(--accent); opacity: 1; }
+.sf-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 24px; padding-top: 14px; border-top: 1px dashed color-mix(in srgb, var(--border) 80%, transparent); font-size: 0.8rem; }
+.site-footer code { font-size: 0.85em; }

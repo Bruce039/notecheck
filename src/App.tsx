@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { BRAND } from "@/brand";
 import { LogoMark, Wordmark } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteFooter } from "@/components/SiteFooter";
 import { NETWORKS, type Network } from "@/lib/network";
 import { AppWalletProvider } from "@/lib/wallet";
 import { PayTool } from "@/pay/PayTool";
@@ -58,10 +58,7 @@ export default function App() {
           <div className="top-actions"><ThemeToggle /></div>
         </header>
         <main className="receipt-main"><AppWalletProvider><ReceiptPage /></AppWalletProvider></main>
-        <footer className="muted small">
-          <a href="/">NoteCheck</a> · No backend: the receipt stays in the link and is never sent to a server
-          <span className="disclaimer">{BRAND.disclaimer}</span>
-        </footer>
+        <SiteFooter compact />
       </div>
     );
   }
@@ -166,10 +163,7 @@ function Toolbox() {
         {tool === "docs" && <DocsPage />}
       </main>
 
-      <footer className="muted small">
-        Built on Miden with <code>@miden-sdk/miden-sdk</code> 0.17 · No backend, nothing leaves this page unless a tool says so · MIT
-        <span className="disclaimer">{BRAND.disclaimer}</span>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

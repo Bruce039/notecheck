@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { defineConfig } from "vite";
@@ -10,7 +11,15 @@ const productionHeaders: Record<string, string> = Object.fromEntries(
   vercel.headers[0].headers.map((h: { key: string; value: string }) => [h.key, h.value]),
 );
 
+// Short commit shown in the footer: Vercel's env var on deploys, git locally.
+function buildId(): string {
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (sha) return sha.slice(0, 7);
+  try { return execSync("git rev-parse --short HEAD").toString().trim(); } catch { return "dev"; }
+}
+
 export default defineConfig({
+  define: { __BUILD__: JSON.stringify(buildId()) },
   // Single-threaded SDK build: no COOP/COEP needed, and they would break wallet popups and embeds.
   plugins: [react(), midenVitePlugin()],
   preview: { headers: productionHeaders },
