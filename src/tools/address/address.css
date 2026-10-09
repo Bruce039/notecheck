@@ -1,0 +1,145 @@
+/* Account ID anatomy (AddressTool). Colors come from theme tokens only. */
+.anat {
+  --seg-hash: color-mix(in oklab, var(--accent) 62%, var(--muted));
+  --seg-tag: var(--accent);
+  --seg-callbacks: var(--warn);
+  --seg-type: color-mix(in oklab, var(--good) 72%, var(--accent));
+  --seg-version: color-mix(in oklab, var(--bad) 62%, var(--accent));
+  --seg-zero: var(--border-strong);
+  --seg-dropped: var(--border-strong);
+  container: anat / inline-size;
+  margin: 20px 0 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-2) 45%, var(--surface));
+}
+.anat .seg-hash { --seg: var(--seg-hash); }
+.anat .seg-tag { --seg: var(--seg-tag); }
+.anat .seg-callbacks { --seg: var(--seg-callbacks); }
+.anat .seg-type { --seg: var(--seg-type); }
+.anat .seg-version { --seg: var(--seg-version); }
+.anat .seg-zero { --seg: var(--seg-zero); }
+.anat .seg-dropped { --seg: var(--seg-dropped); }
+
+.anat-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.anat-head h3 { margin: 0; }
+
+/* Legend: the keyboard path into the diagram */
+.anat-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 14px; }
+.anat-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 0.78rem; line-height: 1.2; color: var(--text);
+  padding: 4px 10px 4px 8px; border-radius: 999px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: border-color .2s, background .2s, transform .2s var(--ease-out);
+}
+.anat-chip:hover, .anat-chip.on {
+  border-color: color-mix(in srgb, var(--seg) 70%, transparent);
+  background: color-mix(in srgb, var(--seg) 12%, var(--surface));
+}
+.anat-chip.on { transform: translateY(-1px); }
+.anat-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--seg); flex-shrink: 0; }
+.seg-tag .anat-swatch { background: transparent; border: 2px solid var(--seg); border-bottom: 0; border-radius: 3px 3px 0 0; height: 7px; }
+.seg-dropped .anat-swatch { background: transparent; border: 1px dashed var(--seg); }
+.anat-chip-label { font-weight: 600; }
+.anat-chip-value { font-family: var(--mono); color: var(--muted); font-size: 0.95em; }
+
+/* Bit rows */
+.anat-rows { display: flex; flex-direction: column; gap: 14px; }
+.anat-row-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; font-size: 0.75rem; margin-bottom: 4px; }
+.anat-row-label { font-weight: 600; color: var(--text); }
+.anat-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 4px; row-gap: 4px; align-items: end; }
+.anat-grid { display: grid; column-gap: 1px; align-items: end; grid-template-rows: auto auto auto; padding-bottom: 18px; }
+
+.anat-bracket {
+  grid-row: 1; position: relative; height: 22px; margin-bottom: 4px;
+  border: 2px solid var(--seg-tag); border-bottom: 0; border-radius: 6px 6px 0 0;
+  transition: opacity .25s;
+}
+.anat-bracket span {
+  position: absolute; left: 6px; top: -1px; transform: translateY(-50%);
+  padding: 0 6px; font-size: 0.7rem; font-weight: 600; color: var(--seg-tag); white-space: nowrap;
+  background: color-mix(in srgb, var(--surface-2) 45%, var(--surface));
+}
+.anat-bracket.dim { opacity: 0.3; }
+
+.anat-bit {
+  grid-row: 2; height: 22px; border-radius: 2px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--seg) 16%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--seg) 22%, transparent);
+  transition: opacity .25s, transform .25s var(--ease-out);
+  animation: anat-in .5s var(--ease-out) backwards;
+  animation-delay: calc(var(--i) * 5ms);
+}
+.anat-bit.one { background: var(--seg); box-shadow: none; }
+.anat-bit.seg-dropped { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--seg) 70%, transparent); opacity: 0.7; }
+.anat-bit i { display: none; font-style: normal; font-family: var(--mono); font-size: 0.62rem; color: var(--seg); }
+.anat-bit.one i { color: var(--surface); }
+.anat-bit.dim, .anat-zbit.dim { opacity: 0.22; }
+.anat-focus .anat-bit:not(.dim) { transform: translateY(-2px); }
+
+.anat-band {
+  grid-row: 3; position: relative; height: 3px; margin-top: 5px; border-radius: 2px;
+  background: var(--seg); transition: opacity .25s;
+}
+.anat-band.seg-dropped { background: repeating-linear-gradient(90deg, var(--seg) 0 3px, transparent 3px 6px); }
+.anat-band em {
+  position: absolute; top: 6px; left: 0; right: 0; text-align: center;
+  font-style: normal; font-size: 0.68rem; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.anat-band.dim { opacity: 0.25; }
+
+@container anat (max-width: 559px) {
+  .anat-halves { grid-template-columns: minmax(0, 1fr); }
+  .anat-chip-value { display: none; }
+  .anat-chip { padding: 3px 9px 3px 7px; font-size: 0.74rem; }
+  .anat-legend { gap: 5px; }
+  .anat-zlab.seg-type { align-items: flex-start; }
+  .anat-zlab small { white-space: nowrap; }
+}
+@container anat (min-width: 700px), (min-width: 360px) and (max-width: 559px) {
+  .anat-bit i { display: block; }
+}
+
+/* Zoom on the metadata byte */
+.anat-zoom { margin-top: 4px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.anat-zoom-cells {
+  display: grid; grid-template-columns: repeat(8, minmax(0, 44px)); gap: 4px 4px;
+}
+.anat-zbit {
+  grid-row: 1; height: 36px; border-radius: 6px; display: grid; place-items: center;
+  font-family: var(--mono); font-weight: 600; font-size: 0.95rem; color: var(--seg);
+  background: color-mix(in srgb, var(--seg) 14%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--seg) 40%, transparent);
+  transition: opacity .25s, transform .25s var(--ease-out);
+  animation: anat-pop .45s var(--ease-out) backwards;
+  animation-delay: calc(400ms + var(--i) * 40ms);
+}
+.anat-zbit.one { background: var(--seg); color: var(--surface); border-color: transparent; }
+.anat-zlab {
+  grid-row: 2; display: flex; flex-direction: column; align-items: center; gap: 0;
+  padding-top: 5px; border-top: 2px solid var(--seg);
+  font-size: 0.68rem; line-height: 1.25; color: var(--muted); text-align: center; min-width: 0;
+}
+.anat-zlab b { font-weight: 600; color: var(--text); }
+.anat-zlab small { font-family: var(--mono); font-size: 0.68rem; color: var(--seg); font-weight: 600; }
+
+.anat-info-meta { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+.anat-info-detail { display: block; margin-top: 2px; }
+.anat-info {
+  margin: 14px 0 0; min-height: 2.6em; font-size: 0.85rem;
+  padding: 8px 12px; border-radius: 8px; background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+@keyframes anat-in { from { opacity: 0; transform: translateY(6px) scaleY(0.6); } to { opacity: 1; transform: none; } }
+@keyframes anat-pop { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .anat-bit, .anat-zbit { animation: none; }
+  .anat-bit, .anat-zbit, .anat-chip, .anat-band, .anat-bracket { transition: none; }
+  .anat-focus .anat-bit:not(.dim), .anat-chip.on { transform: none; }
+}

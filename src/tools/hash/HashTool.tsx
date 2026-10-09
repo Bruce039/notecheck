@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Badge, Field, Notice, TextInput, ToolCard } from "@/components/ui";
 import { attempt } from "@/lib/attempt";
+import { AvalancheView } from "./AvalancheView";
 import { encodeString, hashFelts, parseFelts, type Digest } from "./hash";
 
 type Mode = "felts" | "string";
@@ -74,6 +75,7 @@ export function HashTool() {
           <DigestFields name="Poseidon2" d={r.result.poseidon2}
             hint="The SDK's word encoding: each felt as 8 little-endian bytes, felt 0 first." />
           <DigestFields name="RPO256" d={r.result.rpo256} />
+          <AvalancheView mode={mode} text={text} input={r.result.input} digest={r.result.poseidon2.hex} />
         </>
       )}
     </ToolCard>

@@ -4,6 +4,7 @@ import { attempt } from "@/lib/attempt";
 import type { Network } from "@/lib/network";
 import { withRpc } from "@/lib/rpc";
 import { release } from "@/lib/wasm";
+import { FeeChart } from "./FeeChart";
 import { computeFee, parseBaseFee, parseCycles } from "./fee";
 
 type Fetched = { network: Network; block: number; baseFee: string };
@@ -82,6 +83,7 @@ export function FeeTool({ network }: { network: Network }) {
                 ? "none (2^29 cycle limit)"
                 : `${fee.nextStep} cycles (${fee.cyclesUntilNext} more) → ${fee.baseFee * BigInt(fee.logCycles + 1)}`} />
           </div>
+          <FeeChart fee={fee} />
           <p className="muted small">
             Formula from miden-protocol v0.17.1 (<code>TransactionFee</code>, kernel <code>compute_fee</code>).
             The kernel counts cycles when the fee is computed, plus the caller's estimate of the cycles

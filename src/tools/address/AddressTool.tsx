@@ -4,6 +4,7 @@ import { attempt } from "@/lib/attempt";
 import { HRP, NETWORKS, type Network } from "@/lib/network";
 import { toHex64 } from "@/tools/felt/felt";
 import { accountTag } from "@/tools/tag/tag";
+import { AccountAnatomy } from "./AccountAnatomy";
 import { decodeAccount } from "./account";
 
 const EXAMPLE = "mtst1apus5hps3cnxrq2e5fhnynez7v5sytsk_qr7qqq9wr6w";
@@ -12,6 +13,7 @@ export function AddressTool({ network }: { network: Network }) {
   const [input, setInput] = useState("");
   const { result: a, error } = useMemo(() => attempt(input, decodeAccount), [input]);
   const others = NETWORKS.filter((n) => n !== network);
+  const tagHex = a ? accountTag(a.hex).hex : "";
 
   return (
     <ToolCard
@@ -42,9 +44,11 @@ export function AddressTool({ network }: { network: Network }) {
               hint="Same account with the BasicWallet interface suffix, as wallets display it." />
             <Field label="Prefix felt" value={a.prefix.toString()} hint={toHex64(a.prefix)} />
             <Field label="Suffix felt" value={a.suffix.toString()} hint={toHex64(a.suffix)} />
-            <Field label="Default note tag" value={accountTag(a.hex).hex}
+            <Field label="Default note tag" value={tagHex}
               hint="P2ID notes to this account carry this tag (top 14 bits of the prefix)." />
           </div>
+          <AccountAnatomy key={a.hex} prefix={a.prefix} suffix={a.suffix} version={a.version}
+            visibility={a.visibility} assetCallbacks={a.assetCallbacks} tagHex={tagHex} />
           <details>
             <summary>Other networks</summary>
             <div className="grid">
