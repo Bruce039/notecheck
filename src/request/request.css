@@ -1,0 +1,59 @@
+/* Payment requests: the request card on Pay and the Request tool's output. Theme tokens only,
+   except the QR tile, which is dark-on-white in both themes so any camera can read it. */
+
+.req-card {
+  position: relative; margin: 0 0 16px; padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface));
+  box-shadow: 0 14px 30px -22px color-mix(in srgb, var(--accent) 70%, transparent);
+  animation: req-in .4s var(--ease-out, ease-out) both;
+}
+.req-card::before {
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+.req-card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.req-card-kicker { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.req-card-actions { display: flex; gap: 14px; }
+.req-card-actions .link { font-size: 0.85rem; }
+.req-card-line { margin: 8px 0 4px; font-size: 1.05rem; line-height: 1.45; overflow-wrap: anywhere; }
+.req-card-amount { font-family: var(--font-display); font-size: 1.3rem; letter-spacing: -0.01em; white-space: nowrap; }
+.req-card-to { display: flex; gap: 6px; flex-wrap: wrap; align-items: baseline; }
+.req-card-to code { overflow-wrap: anywhere; min-width: 0; }
+.req-card-check { margin: 8px 0 0; color: var(--text); font-weight: 500; }
+.req-card-unverified { font-size: 0.9rem; border-width: 2px; }
+.req-card .notice { margin-bottom: 0; }
+
+@keyframes req-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---- Request tool output ---- */
+.req-token { margin: 6px 0 0; }
+.req-out {
+  display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start;
+  padding: 16px; border-radius: 14px; border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+  animation: req-in .4s var(--ease-out, ease-out) both;
+}
+.req-out-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.req-out-main p { margin: 0; }
+.req-summary { font-size: 1rem; overflow-wrap: anywhere; }
+.req-qr { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.req-qr-tile {
+  --qr-light: #ffffff;
+  --qr-dark: #111111;
+  width: 196px; max-width: 100%; padding: 10px; border-radius: 12px; background: var(--qr-light);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.qr { display: block; width: 100%; height: auto; }
+.qr-light { fill: var(--qr-light); }
+.qr-dark { fill: var(--qr-dark); }
+
+@media (min-width: 720px) {
+  .req-out { grid-template-columns: minmax(0, 1fr) auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .req-card, .req-out { animation: none; }
+}
+.req-card-ref { white-space: nowrap; }

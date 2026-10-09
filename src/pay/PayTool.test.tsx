@@ -7,6 +7,7 @@ import { TransactionType } from "@miden-sdk/miden-wallet-adapter-base";
 import { TESTNET_RECEIPT as F } from "@/receipt/fixtures";
 import { toBase64 } from "@/receipt/bytes";
 import { decodeReceipt } from "@/receipt/format";
+import { encodeRequest, type PaymentRequestV1 } from "@/request/format";
 import { inspectNoteFileBytes, noteFileFromBase64 } from "@/receipt/inspect";
 import { toBech32 } from "@/tools/address/account";
 import { buildTestPayment } from "./testNote";
@@ -16,6 +17,9 @@ const h = vi.hoisted(() => ({
   wallet: {} as Record<string, unknown>,
   committed: true,
   rpcCalls: 0,
+  verified: true,
+  /** When set, commit lookups wait for it, so a test can watch the "Building your receipt" step. */
+  rpcGate: null as Promise<void> | null,
 }));
 
 vi.mock("@miden-sdk/miden-wallet-adapter-react", () => ({ useWallet: () => h.wallet }));
@@ -23,7 +27,7 @@ vi.mock("@/lib/wallet", () => ({ WalletButton: () => <span>wallet-button-stub</s
 vi.mock("@/lib/tokens", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/tokens")>()),
   tokenInfo: async (_n: string, faucet: string) =>
-    faucet === F.faucetId ? { symbol: "USDCX", decimals: 6, source: "chain", verified: true } : null,
+    faucet === F.faucetId ? { symbol: "USDCX", decimals: 6, source: "chain", verified: h.verified } : null,
 }));
 vi.mock("@/lib/rpc", () => ({
   withRpc: async (_network: string, fn: (rpc: unknown) => Promise<unknown>) => {
@@ -31,6 +35,7 @@ vi.mock("@/lib/rpc", () => ({
     return fn({
       getNotesById: async (ids: NoteId[]) => {
         const id = ids[0].toString();
+        if (h.rpcGate) await h.rpcGate;
         return h.committed
           ? [{ noteId: NoteId.fromHex(id), inclusionProof: NoteInclusionProof.mockAtBlock(4242) } as unknown as FetchedNote]
           : [];
@@ -110,7 +115,29 @@ beforeEach(() => {
   h.committed = true;
   h.rpcCalls = 0;
   h.wallet = { connected: false, address: null };
+  h.verified = true;
+  h.rpcGate = null;
+  window.history.replaceState(null, "", "/");
 });
+
+function deferred<T>() {
+  let resolve!: (v: T) => void;
+  let reject!: (e: unknown) => void;
+  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+}
+
+const stepStates = () => [...document.querySelectorAll(".ps-step")].map((li) => li.getAttribute("data-state"));
+const currentStep = () => document.querySelector(".ps-step[aria-current='step'] .ps-label")?.textContent;
+
+const REQUEST: PaymentRequestV1 = {
+  v: 1, network: "testnet", to: RECIPIENT, faucetId: F.faucetId, amount: "1500000", memo: "Invoice #7", ref: "INV-7",
+};
+async function openRequest(over: Partial<PaymentRequestV1> = {}) {
+  const fragment = await encodeRequest({ ...REQUEST, ...over });
+  window.history.replaceState(null, "", `/?tool=pay#${fragment}`);
+}
+const requestCard = () => screen.findByRole("region", { name: "Payment request" });
 
 describe("PayTool", () => {
   it("disconnected: shows the wallet button and no form", () => {
@@ -399,6 +426,229 @@ describe("PayTool", () => {
       } finally {
         vi.useRealTimers();
       }
+    });
+  });
+
+  describe("progress stepper", () => {
+    it("walks the honest stages as the wallet promises resolve, then shows the receipt", async () => {
+      const sent = deferred<string>();
+      const confirmed = deferred<{ txHash: string; outputNotes: unknown[] }>();
+      const gate = deferred<void>();
+      h.rpcGate = gate.promise;
+      h.wallet = connectedWallet({
+        requestTransaction: vi.fn(() => sent.promise),
+        waitForTransaction: vi.fn(() => confirmed.promise),
+      });
+      render(<PayTool network="testnet" />);
+      const u = user();
+      await fillForm(u);
+      await u.click(payButton());
+
+      expect(currentStep()).toBe("Confirm in your wallet");
+      expect(stepStates()).toEqual(["active", "todo", "todo", "todo", "todo"]);
+      expect(screen.getByRole("timer")).toHaveTextContent(/^0:0\d$/);
+
+      await act(async () => sent.resolve("wallet-tx-1"));
+      expect(currentStep()).toBe("Wallet is proving and sending");
+      expect(stepStates()).toEqual(["done", "active", "todo", "todo", "todo"]);
+      expect(loadPending()).toHaveLength(1);
+
+      await act(async () => confirmed.resolve({ txHash: TX_HASH, outputNotes: [payment().note] }));
+      await waitFor(() => expect(currentStep()).toBe("Building your receipt"));
+      expect(stepStates()).toEqual(["done", "done", "done", "active", "todo"]);
+
+      await act(async () => gate.resolve());
+      await receiptLink();
+      expect(stepStates()).toEqual(["done", "done", "done", "done", "done"]);
+      expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+      expect(screen.getByText("Receipt ready.")).toBeInTheDocument();
+    });
+
+    it("marks the wallet step as failed when the wallet rejects", async () => {
+      h.wallet = connectedWallet({ requestTransaction: vi.fn(async () => { throw new Error("User rejected"); }) });
+      render(<PayTool network="testnet" />);
+      const u = user();
+      await fillForm(u);
+      await u.click(payButton());
+      await screen.findByRole("alert");
+      expect(stepStates()).toEqual(["failed", "todo", "todo", "todo", "todo"]);
+      expect(screen.getByText(/Stopped at: Confirm in your wallet/)).toBeInTheDocument();
+    });
+
+    it("attaches a wallet timeout to the proving step and keeps the payment pending", async () => {
+      h.wallet = connectedWallet({ waitForTransaction: vi.fn(async () => { throw new Error("Transaction timed out"); }) });
+      render(<PayTool network="testnet" />);
+      const u = user();
+      await fillForm(u);
+      await u.click(payButton());
+      await screen.findByText(/Don't send it again/);
+      expect(stepStates()).toEqual(["done", "failed", "todo", "todo", "todo"]);
+      expect(loadPending()).toHaveLength(1);
+    });
+
+    it("shows a soft hint when the wallet takes longer than 90 seconds", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        h.wallet = connectedWallet({ requestTransaction: vi.fn(async () => "wallet-tx-1"), waitForTransaction: vi.fn(() => new Promise(() => {})) });
+        render(<PayTool network="testnet" />);
+        const u = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+        await fillForm(u);
+        await u.click(payButton());
+        await waitFor(() => expect(currentStep()).toBe("Wallet is proving and sending"));
+        expect(screen.queryByText(/Still going/)).not.toBeInTheDocument();
+        await act(async () => { await vi.advanceTimersByTimeAsync(91_000); });
+        expect(screen.getByText("Still going — the wallet can take a couple of minutes.")).toBeInTheDocument();
+        expect(screen.getByRole("timer")).toHaveTextContent(/^1:3\d$/);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("resumes at 'Building your receipt' when the note is already known", async () => {
+      const gate = deferred<void>();
+      h.rpcGate = gate.promise;
+      savePending({
+        txId: "old-tx", network: "testnet", recipient: F.recipient, faucetId: F.faucetId, amount: AMOUNT.toString(),
+        createdAt: "2026-10-08T10:00:00.000Z", noteB64: toBase64(payment().noteBytes),
+      });
+      render(<PayTool network="testnet" />);
+      fireEvent.click(screen.getByRole("button", { name: "finish receipt" }));
+      expect(stepStates()).toEqual(["done", "done", "done", "active", "todo"]);
+      await act(async () => gate.resolve());
+      await receiptLink();
+    });
+
+    it("resumes at the wallet step when only the transaction id is known", async () => {
+      const confirmed = deferred<{ txHash: string; outputNotes: unknown[] }>();
+      h.wallet = connectedWallet({ waitForTransaction: vi.fn(() => confirmed.promise) });
+      savePending({
+        txId: "old-tx", network: "testnet", recipient: F.recipient, faucetId: F.faucetId, amount: AMOUNT.toString(),
+        createdAt: "2026-10-08T10:00:00.000Z",
+      });
+      render(<PayTool network="testnet" />);
+      fireEvent.click(screen.getByRole("button", { name: "finish receipt" }));
+      expect(stepStates()).toEqual(["done", "active", "todo", "todo", "todo"]);
+      await act(async () => confirmed.resolve({ txHash: TX_HASH, outputNotes: [payment().note] }));
+      await receiptLink();
+    });
+  });
+
+  describe("paying a payment request", () => {
+    it("shows the request card, prefills and locks the form, pays exactly the request", async () => {
+      await openRequest();
+      const w = connectedWallet();
+      h.wallet = w;
+      render(<PayTool network="testnet" />);
+      const card = await requestCard();
+      await waitFor(() => expect(card).toHaveTextContent("1.5 USDCX"));
+      expect(card).toHaveTextContent(/requests 1\.5 USDCX · Invoice #7 · ref INV-7/);
+      expect(card).toHaveTextContent("Check the recipient address with the person who sent you this request.");
+      expect(card).toHaveTextContent(RECIPIENT);
+      expect(screen.getByRole("heading", { name: "Pay a request" })).toBeInTheDocument();
+
+      const u = user();
+      await u.click(screen.getByRole("button", { name: "Load my tokens" }));
+      await screen.findByRole("option", { name: /USDCX · balance 5/ });
+      const to = screen.getByLabelText("Recipient address");
+      const amount = screen.getByLabelText(/^Amount/);
+      const memo = screen.getByLabelText(/^Memo for the receipt/);
+      await waitFor(() => expect(amount).toHaveValue("1.5"));
+      expect(to).toHaveValue(RECIPIENT);
+      expect(memo).toHaveValue("Invoice #7 · ref INV-7");
+      for (const el of [to, amount, memo]) expect(el).toHaveAttribute("readonly");
+      expect(screen.getByLabelText("Token")).toBeDisabled();
+      await u.type(amount, "99");
+      expect(amount).toHaveValue("1.5");
+
+      await u.click(payButton());
+      const url = await receiptLink();
+      const tx = (w.requestTransaction.mock.calls[0] as unknown[])[0] as { payload: Record<string, unknown> };
+      expect(tx.payload).toMatchObject({ recipientAddress: RECIPIENT, faucetId: FAUCET_B32, amount: 1_500_000 });
+      const r = await decodeReceipt(url.slice(url.indexOf("#")));
+      expect(r.memo).toBe("Invoice #7 · ref INV-7");
+      expect(screen.getByText(/Send this receipt back to/)).toHaveTextContent(`Send this receipt back to ${RECIPIENT.slice(0, 10)}…${RECIPIENT.slice(-4)}`);
+      // Paid: the request leaves the URL so a reload doesn't offer it again.
+      expect(window.location.hash).toBe("");
+      expect(screen.queryByRole("region", { name: "Payment request" })).not.toBeInTheDocument();
+    });
+
+    it("Edit unlocks the fields with the request's values", async () => {
+      await openRequest();
+      h.wallet = connectedWallet();
+      render(<PayTool network="testnet" />);
+      const u = user();
+      await requestCard();
+      await u.click(screen.getByRole("button", { name: "Load my tokens" }));
+      await screen.findByRole("option", { name: /USDCX · balance 5/ });
+      await waitFor(() => expect(screen.getByLabelText(/^Amount/)).toHaveValue("1.5"));
+      await u.click(screen.getByRole("button", { name: "Edit" }));
+      const amount = screen.getByLabelText(/^Amount/);
+      expect(amount).not.toHaveAttribute("readonly");
+      expect(amount).toHaveValue("1.5");
+      expect(screen.getByLabelText("Recipient address")).toHaveValue(RECIPIENT);
+      expect(screen.getByLabelText(/^Memo for the receipt/)).toHaveValue("Invoice #7 · ref INV-7");
+      expect(screen.getByLabelText("Token")).toBeEnabled();
+      expect(screen.getByText(/You changed the request's details/)).toBeInTheDocument();
+      await u.clear(amount); await u.type(amount, "2");
+      expect(payButton()).toBeEnabled();
+    });
+
+    it("says so when the wallet doesn't hold the requested token", async () => {
+      await openRequest();
+      h.wallet = connectedWallet({ requestAssets: vi.fn(async () => [{ faucetId: "0x18101fa522c174b165efd4f70a0385", amount: "10" }]) });
+      render(<PayTool network="testnet" />);
+      await requestCard();
+      await user().click(screen.getByRole("button", { name: "Load my tokens" }));
+      expect(await screen.findByText(/Your wallet doesn't hold USDCX this request asks for/)).toBeInTheDocument();
+      expect(payButton()).toBeDisabled();
+    });
+
+    it("asks to switch network when the request is for another network", async () => {
+      await openRequest({ network: "devnet", to: toBech32(F.recipient, "devnet") });
+      h.wallet = connectedWallet();
+      render(<PayTool network="testnet" />);
+      const card = await requestCard();
+      expect(card).toHaveTextContent("This request is for devnet. Switch the network at the top to devnet to pay it.");
+      expect(screen.queryByRole("button", { name: "Load my tokens" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    });
+
+    it("warns prominently when the requested token is unverified", async () => {
+      h.verified = false;
+      await openRequest();
+      render(<PayTool network="testnet" />);
+      const card = await requestCard();
+      await waitFor(() => expect(card).toHaveTextContent(/Unverified token\. Anyone can create a token called USDCX/));
+    });
+
+    it("disconnected: the request card replaces the landing hero", async () => {
+      await openRequest();
+      render(<PayTool network="testnet" />);
+      expect(document.querySelector(".nch")).toBeNull();
+      await requestCard();
+      expect(document.querySelector(".nch")).toBeNull();
+      expect(screen.getByText("wallet-button-stub")).toBeInTheDocument();
+    });
+
+    it("explains a damaged request link and can dismiss it", async () => {
+      window.history.replaceState(null, "", "/?tool=pay#q1.broken");
+      render(<PayTool network="testnet" />);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/payment request link can't be read/);
+      fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+      expect(window.location.hash).toBe("");
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(document.querySelector(".nch")).not.toBeNull();
+    });
+
+    it("Dismiss drops the request and returns to an empty form", async () => {
+      await openRequest();
+      h.wallet = connectedWallet();
+      render(<PayTool network="testnet" />);
+      await requestCard();
+      fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+      expect(screen.queryByRole("region", { name: "Payment request" })).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Recipient address")).toHaveValue("");
+      expect(window.location.hash).toBe("");
     });
   });
 });

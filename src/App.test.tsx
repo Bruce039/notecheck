@@ -25,6 +25,7 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Pay" })).toHaveAttribute("aria-current", "page");
     expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe("testnet");
     expect(window.location.search).toBe("?tool=pay");
+    expect(document.querySelector(".nch")).not.toBeNull(); // landing hero
   });
 
   it("reads tool and network from the URL and ignores unknown values", () => {
@@ -58,15 +59,39 @@ describe("App", () => {
     render(<App />);
     const u = userEvent.setup();
     const tabs = screen.getAllByRole("button").filter((b) => b.classList.contains("tab"));
-    expect(tabs.map((t) => t.textContent)).toEqual(["Pay", "Receipts", "Address", "Felt / Word", "Note tag", "Hash", "Fee", "Allowlist", "Docs"]);
+    expect(tabs.map((t) => t.textContent)).toEqual(["Pay", "Request", "Receipts", "Address", "Felt / Word", "Note tag", "Hash", "Fee", "Allowlist", "Docs"]);
     tabs[0].focus();
-    for (let i = 0; i < 7; i++) await u.tab();
-    expect(document.activeElement).toBe(tabs[7]);
+    for (let i = 0; i < 8; i++) await u.tab();
+    expect(document.activeElement).toBe(tabs[8]);
     await u.keyboard("{Enter}");
     expect(activeTab()).toBe("Allowlist");
     for (let i = 0; i < 6; i++) await u.tab({ shift: true });
     await u.keyboard(" ");
     expect(activeTab()).toBe("Receipts");
+  });
+
+  it("opens the Request tool from its tab and from ?tool=request", async () => {
+    go("/?tool=request");
+    const { unmount } = render(<App />);
+    expect(activeTab()).toBe("Request");
+    expect(screen.getByRole("heading", { name: "Request a payment" })).toBeInTheDocument();
+    unmount();
+    go("/");
+    render(<App />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Request" }));
+    expect(window.location.search).toBe("?tool=request");
+  });
+
+  it("keeps a payment request fragment on Pay and hides the landing hero for it", async () => {
+    go("/#q1.not-a-real-request");
+    render(<App />);
+    expect(window.location.search).toBe("?tool=pay");
+    expect(window.location.hash).toBe("#q1.not-a-real-request");
+    expect(screen.getByRole("heading", { name: "Make a payment" })).toBeInTheDocument();
+    expect(await screen.findByText(/payment request link can't be read/)).toBeInTheDocument();
+    expect(document.querySelector(".nch")).toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Request" }));
+    expect(window.location.hash).toBe("");
   });
 
   it("serves the receipt page on /r without the toolbox", async () => {

@@ -7,6 +7,7 @@ import { AppWalletProvider } from "@/lib/wallet";
 import { PayTool } from "@/pay/PayTool";
 import { ReceiptPage } from "@/receipt/ReceiptPage";
 import { ReceiptsTool } from "@/receipt/ReceiptsTool";
+import { RequestTool } from "@/request/RequestTool";
 import { DocsPage } from "@/docs/DocsPage";
 import { AddressTool } from "@/tools/address/AddressTool";
 import { AllowlistTool } from "@/tools/allowlist/AllowlistTool";
@@ -15,11 +16,12 @@ import { FeltTool } from "@/tools/felt/FeltTool";
 import { HashTool } from "@/tools/hash/HashTool";
 import { TagTool } from "@/tools/tag/TagTool";
 
-type ToolId = "address" | "felt" | "tag" | "hash" | "fee" | "allowlist" | "pay" | "receipt" | "docs";
+type ToolId = "address" | "felt" | "tag" | "hash" | "fee" | "allowlist" | "pay" | "request" | "receipt" | "docs";
 
 // Receipts first: they are the product; the developer tools follow.
 const TOOLS: { id: ToolId; label: string; ready: boolean }[] = [
   { id: "pay", label: "Pay", ready: true },
+  { id: "request", label: "Request", ready: true },
   { id: "receipt", label: "Receipts", ready: true },
   { id: "address", label: "Address", ready: true },
   { id: "felt", label: "Felt / Word", ready: true },
@@ -99,7 +101,10 @@ function Toolbox() {
     const q = new URLSearchParams({ tool });
     if (network !== "testnet") q.set("net", network);
     const url = `${window.location.pathname}?${q}`;
-    if (url !== window.location.pathname + window.location.search) window.history.replaceState(null, "", url);
+    if (url === window.location.pathname + window.location.search) return;
+    // A payment request (`#q1.…`) stays in the URL while Pay shows it, e.g. across a network switch.
+    const hash = tool === "pay" && window.location.hash.startsWith("#q1.") ? window.location.hash : "";
+    window.history.replaceState(null, "", url + hash);
   }, [tool, network]);
 
   return (
@@ -156,6 +161,7 @@ function Toolbox() {
         {tool === "fee" && <FeeTool network={network} />}
         {tool === "allowlist" && <AllowlistTool network={network} />}
         {tool === "pay" && <PayTool network={network} />}
+        {tool === "request" && <RequestTool network={network} />}
         {tool === "receipt" && <ReceiptsTool network={network} />}
         {tool === "docs" && <DocsPage />}
       </main>

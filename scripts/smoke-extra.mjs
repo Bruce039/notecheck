@@ -13,6 +13,7 @@ import {
 //   4. Pay flow against an injected fake `window.midenWallet` (the object the Bread extension
 //      provides): connect -> assets -> form -> requestSend -> waitForTransaction returning a real
 //      serialized note -> receipt polling. Also wallet reject / failure / timeout / reload-resume.
+//   5. A payment request link (`/?tool=pay#q1.…`): request card, then a prefilled, locked form.
 // Notes built here are never on chain, so receipts show "Not found" and the pay flow stays in
 // its "waiting for commit" state; that is expected.
 // Usage: node scripts/smoke-extra.mjs [baseUrl] [screenshotDir]
@@ -160,11 +161,11 @@ const receiptText = async (page) => flat(await page.locator(".receipt").innerTex
   await page.getByRole("navigation", { name: "Tools" }).waitFor({ timeout: 90_000 });
   await page.locator(".tab").first().focus();
   const visited = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     await page.keyboard.press("Tab");
     visited.push(await page.evaluate(() => document.activeElement?.textContent));
   }
-  check(visited.join("|") === "Receipts|Address|Felt / Word|Note tag|Hash|Fee|Allowlist", `Tab walks the tool tabs in order (${visited.join("|")})`);
+  check(visited.join("|") === "Request|Receipts|Address|Felt / Word|Note tag|Hash|Fee|Allowlist", `Tab walks the tool tabs in order (${visited.join("|")})`);
   await page.keyboard.press("Enter");
   await page.getByRole("heading", { name: "Allowlist", exact: true }).waitFor({ timeout: 5000 });
   check(page.url().includes("tool=allowlist"), "Enter on a tab opens that tool");
@@ -261,13 +262,17 @@ const receiptText = async (page) => flat(await page.locator(".receipt").innerTex
   await fillForm();
   await page.getByLabel("Receipt password (optional)").fill("correct horse");
   await reviewBtn().click();
-  await page.getByText(/Your wallet is building, proving and sending the payment/).waitFor({ timeout: 15_000 });
+  await page.locator(".ps").waitFor({ timeout: 15_000 });
   await page.waitForFunction(() => JSON.parse(localStorage.getItem("pending-payments-v2") ?? "[]")[0]?.noteB64, null, { timeout: 15_000 });
   p = await pending();
   check(p.length === 1 && p[0].noteB64 === wallet.noteB64, "wallet note accepted by pickPaymentNote in the browser and saved byte-identical");
   check(p[0].chainTxId === wallet.txHash && p[0].memo === "smoke-extra", "pending record carries the tx hash and memo");
   await page.waitForTimeout(7000); // a couple of commit polls against the real RPC
-  check(await page.getByText(/Your wallet is building, proving and sending the payment/).isVisible(), "still waiting for commit after several RPC polls (note is not on chain)");
+  const step = await page.locator(".ps-step[aria-current='step'] .ps-label").textContent();
+  const states = await page.locator(".ps-step").evaluateAll((els) => els.map((e) => e.dataset.state).join(","));
+  check(step === "Building your receipt" && states === "done,done,done,active,todo",
+    `stepper waits at "Building your receipt" after several RPC polls (note is not on chain): ${step} [${states}]`);
+  check(/^\d+:\d\d$/.test(await page.locator(".ps-timer").textContent()), "stepper shows an elapsed timer");
   await page.screenshot({ path: `${out}/pay-waiting.png`, fullPage: true });
 
   // 4e. Reload: the pending payment is offered again.
@@ -285,6 +290,49 @@ const receiptText = async (page) => flat(await page.locator(".receipt").innerTex
   check(await page.getByRole("button", { name: "Connect wallet" }).isVisible(), "after reload the wallet is selected but not connected");
   check(await page.getByRole("button", { name: "finish receipt" }).isDisabled(), "finish receipt waits for the sending wallet to connect");
   check((await pending()).length === 1, "the pending payment is kept while the wallet is disconnected");
+  await page.context().close();
+}
+
+// 5. Payment request link
+{
+  const REQUEST_TO = "mtst1ap6wl92rd8jfwsgehu25ukeh5ykn7970";
+  check(REQUEST_TO === wallet.recipient, "request recipient is the fixture recipient");
+  const reqFragment = "q1." + gzipSync(JSON.stringify({
+    v: 1, network: "testnet", to: REQUEST_TO, faucetId: FAUCET, amount: "1500000", memo: "Invoice #7",
+  })).toString("base64url");
+  const page = await newPage({ withWallet: true });
+  await page.goto(base + "/?tool=pay#" + reqFragment);
+  const card = page.getByRole("region", { name: "Payment request" });
+  await card.waitFor({ timeout: 90_000 });
+  await card.getByText("1.5 USDCX").waitFor({ timeout: 60_000 });
+  const cardText = flat(await card.innerText());
+  check(/requests 1\.5 USDCX · Invoice #7/.test(cardText), `request card shows amount and memo (${cardText.slice(0, 120)})`);
+  check(cardText.includes("Check the recipient address with the person who sent you this request."), "request card asks to check the address");
+  check(await page.locator(".nch").count() === 0, "no landing hero while a request is shown");
+  check(page.url().endsWith("#" + reqFragment), "the request stays in the URL");
+  await page.screenshot({ path: `${out}/request-card.png`, fullPage: true });
+
+  await page.getByRole("button", { name: "Connect wallet" }).click({ timeout: 15_000 });
+  await page.getByRole("button", { name: "Load my tokens" }).click({ timeout: 15_000 });
+  await page.locator("#pay-token option", { hasText: /USDCX/ }).waitFor({ state: "attached", timeout: 60_000 });
+  const to = page.getByLabel("Recipient address");
+  const amount = page.getByLabel(/^Amount/);
+  const memo = page.getByLabel(/Memo for the receipt/);
+  await page.waitForFunction(() => [...document.querySelectorAll(".tool input")].some((i) => i.value === "1.5"), null, { timeout: 15_000 }).catch(() => {});
+  const values = [await to.inputValue(), await amount.inputValue(), await memo.inputValue()];
+  check(values.join("|") === `${REQUEST_TO}|1.5|Invoice #7`, `form prefilled from the request (${values.join(" | ")})`);
+  const locked = [await to.getAttribute("readonly"), await amount.getAttribute("readonly"), await memo.getAttribute("readonly")];
+  check(locked.every((x) => x !== null) && await page.locator("#pay-token").isDisabled(), "recipient, amount, memo and token are locked");
+  await page.screenshot({ path: `${out}/request-form.png`, fullPage: true });
+
+  await page.getByRole("button", { name: "Review in wallet" }).click();
+  await page.locator(".ps").waitFor({ timeout: 15_000 });
+  const send = (await page.evaluate(() => window.__walletLog)).find((c) => c[0] === "requestSend");
+  check(send && send[1].recipientAddress === REQUEST_TO && send[1].amount === 1_500_000 && send[1].faucetId === wallet.faucet,
+    `request pays exactly what was asked (${JSON.stringify(send?.[1])})`);
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem("pending-payments-v2") ?? "[]")[0]?.noteB64, null, { timeout: 15_000 });
+  const rec = await page.evaluate(() => JSON.parse(localStorage.getItem("pending-payments-v2") ?? "[]")[0]);
+  check(rec.memo === "Invoice #7", `pending payment carries the request memo (${rec.memo})`);
   await page.context().close();
 }
 

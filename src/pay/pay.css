@@ -1,0 +1,125 @@
+/* Pay tool: progress stepper, locked request fields, completion. Colours come from the theme tokens. */
+
+/* ---- Locked form fields (filled from a payment request) ---- */
+.input-locked input,
+.input-locked select {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+  cursor: default;
+}
+.input-locked select:disabled { opacity: 1; }
+.lock-tag {
+  font-size: 0.72rem; font-weight: 500; color: var(--muted);
+  padding: 0 7px; border-radius: 999px; border: 1px solid var(--border);
+}
+
+/* ---- Stepper ---- */
+.ps {
+  --ps-dot: 28px;
+  --ps-line: var(--border);
+  margin: 4px 0 8px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+.ps-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.ps-step {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  min-height: calc(var(--ps-dot) + 18px); color: var(--muted); font-size: 0.92rem;
+}
+/* Vertical connector between dots */
+.ps-step:not(:last-child)::after {
+  content: ""; position: absolute; left: calc(var(--ps-dot) / 2 - 1px);
+  top: calc(50% + var(--ps-dot) / 2 + 2px); bottom: calc(-50% + var(--ps-dot) / 2 + 2px);
+  width: 2px; border-radius: 2px; background: var(--ps-line);
+  transition: background .4s var(--ease-out, ease);
+}
+.ps-step.ps-done:not(:last-child)::after { background: color-mix(in srgb, var(--accent) 70%, var(--border)); }
+
+.ps-dot {
+  position: relative; flex-shrink: 0; width: var(--ps-dot); height: var(--ps-dot); border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface); border: 2px solid var(--border);
+  transition: background .3s, border-color .3s, color .3s;
+}
+.ps-num { font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ps-label { line-height: 1.3; }
+
+.ps-step.ps-active { color: var(--text); font-weight: 600; }
+.ps-step.ps-active .ps-dot { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.ps-step.ps-active .ps-dot::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  animation: ps-pulse 1.6s var(--ease-out, ease-out) infinite;
+}
+.ps-step.ps-done { color: var(--text); }
+.ps-step.ps-done .ps-dot { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ps-step.ps-failed { color: var(--bad); font-weight: 600; }
+.ps-step.ps-failed .ps-dot { background: var(--bad); border-color: var(--bad); color: var(--on-bad); animation: ps-shake .4s ease-in-out; }
+
+.ps-check, .ps-cross { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ps-check path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ps-draw .45s var(--ease-out, ease-out) .05s forwards; }
+
+/* When it's done, the last step's check pops and everything settles on green. */
+.ps.ps-is-done { border-color: color-mix(in srgb, var(--good) 35%, var(--border)); background: color-mix(in srgb, var(--good-soft) 60%, transparent); }
+.ps.ps-is-done .ps-step.ps-done .ps-dot { background: var(--good); border-color: var(--good); color: var(--on-good); }
+.ps.ps-is-done .ps-step:not(:last-child)::after { background: color-mix(in srgb, var(--good) 60%, var(--border)); }
+.ps.ps-is-done .ps-step:last-child .ps-dot { animation: ps-pop .5s cubic-bezier(.3, 1.6, .5, 1) .15s both; }
+.ps.ps-is-done .ps-step:last-child { font-weight: 600; }
+
+.ps-meta {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
+  margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);
+  font-size: 0.85rem; color: var(--muted);
+}
+.ps-timer {
+  font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--text);
+  padding: 1px 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border);
+}
+.ps-hint { animation: ps-fade .5s ease both; }
+.ps-hint:not(.ps-hint-soft) { color: var(--warn); }
+
+@keyframes ps-pulse { 0% { transform: scale(.8); opacity: .9; } 100% { transform: scale(1.35); opacity: 0; } }
+@keyframes ps-draw { to { stroke-dashoffset: 0; } }
+@keyframes ps-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes ps-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@keyframes ps-fade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+/* Desktop: a horizontal track with labels under the dots. */
+@media (min-width: 720px) {
+  .ps { padding: 18px 16px 14px; }
+  .ps-list { flex-direction: row; align-items: flex-start; }
+  .ps-step {
+    flex: 1 1 0; min-width: 0; flex-direction: column; align-items: center; gap: 8px;
+    min-height: 0; text-align: center; font-size: 0.84rem;
+  }
+  .ps-step:not(:last-child)::after {
+    left: calc(50% + var(--ps-dot) / 2 + 4px); right: calc(-50% + var(--ps-dot) / 2 + 4px);
+    top: calc(var(--ps-dot) / 2 - 1px); bottom: auto; width: auto; height: 2px;
+  }
+  .ps-label { padding: 0 4px; }
+}
+
+/* ---- Completion: the receipt slip prints, then the link fades in ---- */
+.pay-done-status { align-items: center; }
+.pay-slip {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--good); color: var(--on-good); overflow: hidden;
+}
+.pay-slip svg { width: 36px; height: 36px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pay-slip-slot { stroke-width: 2.6; }
+.pay-slip-body { fill: color-mix(in srgb, var(--on-good) 16%, transparent); }
+.pay-slip-paper { animation: pay-print .7s var(--ease-out, ease-out) .1s both; }
+.pay-slip-check { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ps-draw .4s var(--ease-out, ease-out) .7s forwards; }
+.pay-reveal { display: flex; flex-direction: column; gap: 12px; animation: ps-fade .45s var(--ease-out, ease-out) .55s both; }
+
+@keyframes pay-print { from { transform: translateY(-26px); } to { transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-active .ps-dot::before { animation: none; opacity: .5; transform: scale(1.15); }
+  .ps-check path, .pay-slip-check { animation: none; stroke-dashoffset: 0; }
+  .ps-step.ps-failed .ps-dot, .ps.ps-is-done .ps-step:last-child .ps-dot, .pay-slip-paper, .pay-reveal, .ps-hint { animation: none; }
+}
