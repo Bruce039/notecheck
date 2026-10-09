@@ -1,0 +1,252 @@
+/* Docs tab (?tool=docs). Theme comes only from the tokens in index.css. */
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.docs) { scroll-behavior: smooth; }
+}
+
+.docs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  color: var(--text);
+}
+
+/* Hero */
+.docs-hero {
+  position: relative; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 28px 28px 24px;
+}
+.docs-hero::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--accent);
+}
+.docs-eyebrow {
+  margin: 0 0 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent);
+}
+.docs .docs-hero-title {
+  font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+}
+.docs-hero-lead { margin: 8px 0 18px; color: var(--muted); font-size: 1.02rem; max-width: 60ch; }
+.docs-hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.docs-hero-actions .btn { padding: 8px 16px; }
+
+/* Table of contents */
+.docs-aside { display: none; }
+.docs-toc ol, .docs-toc-mobile ol { list-style: none; margin: 0; padding: 0; }
+.docs-toc a, .docs-toc-mobile a {
+  display: block; padding: 5px 10px; border-radius: 6px;
+  color: var(--muted); text-decoration: none; font-size: 0.88rem; line-height: 1.35;
+}
+.docs-toc a:hover, .docs-toc-mobile a:hover { color: var(--text); background: var(--surface-2); }
+.docs-toc a.docs-toc-on { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.docs-toc-title {
+  margin: 0 0 6px 10px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.docs-toc-mobile {
+  margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.docs-toc-mobile summary {
+  padding: 12px 16px; font-size: 0.92rem; font-weight: 600; color: var(--text);
+  list-style: none; display: flex; justify-content: space-between; align-items: center;
+}
+.docs-toc-mobile summary::-webkit-details-marker { display: none; }
+.docs-toc-mobile summary::after {
+  content: ""; width: 7px; height: 7px; margin-right: 4px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg) translateY(-2px); transition: transform 0.2s;
+}
+.docs-toc-mobile[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+.docs-toc-mobile nav { padding: 0 8px 10px; }
+
+@media (min-width: 880px) {
+  .docs { grid-template-columns: 184px minmax(0, 1fr); column-gap: 28px; }
+  .docs-hero { grid-column: 1 / -1; }
+  .docs-toc-mobile { display: none; }
+  .docs-aside { display: block; }
+  .docs-toc { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-top: 4px; }
+}
+
+/* Sections */
+.docs-body { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.docs-section {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 24px 28px; scroll-margin-top: 16px; min-width: 0;
+  font-size: 1rem; line-height: 1.65;
+}
+.docs-section > *, .docs-section .docs-defs, .docs-section .docs-faq { max-width: 70ch; }
+.docs-section p { margin: 0 0 12px; }
+.docs-section > :last-child, .docs-section p:last-child { margin-bottom: 0; }
+.docs-section ul, .docs-section .docs-plain { margin: 0 0 12px; padding-left: 1.3em; }
+.docs-section li { margin: 4px 0; }
+.docs-section a { text-underline-offset: 2px; }
+.docs-section code {
+  font-family: var(--mono); font-size: 0.86em; padding: 1px 5px; border-radius: 5px;
+  background: var(--surface-2); border: 1px solid var(--border); overflow-wrap: anywhere;
+}
+.docs-section strong { font-weight: 600; }
+
+.docs .docs-h {
+  position: relative; margin: 0 0 14px;
+  font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; letter-spacing: -0.015em; line-height: 1.3;
+}
+.docs-anchor {
+  margin-left: 8px; color: var(--muted); text-decoration: none; font-weight: 500;
+  opacity: 0; transition: opacity 0.15s, color 0.15s;
+}
+.docs-h:hover .docs-anchor, .docs-anchor:focus-visible { opacity: 1; }
+.docs-anchor:hover { color: var(--accent); }
+@media (hover: none) { .docs-anchor { opacity: 0.5; } }
+
+/* index.css makes h3 a small uppercase label; docs h3s are real subheadings. */
+.docs .docs-section h3 {
+  margin: 22px 0 8px; font-family: var(--font-display); font-size: 1.02rem; font-weight: 650;
+  text-transform: none; letter-spacing: -0.005em; color: var(--text);
+}
+
+/* A label or button as named in the app */
+.docs-ui {
+  font-weight: 600; font-size: 0.94em; white-space: normal;
+  padding: 0 4px; border-radius: 4px; background: var(--accent-soft); color: var(--text);
+  box-decoration-break: clone; -webkit-box-decoration-break: clone;
+}
+
+.docs-note { color: var(--muted); font-size: 0.92rem; }
+
+/* Numbered steps */
+.docs-steps { list-style: none; counter-reset: docs-step; margin: 18px 0 16px; padding: 0; }
+.docs-steps > li {
+  counter-increment: docs-step; position: relative;
+  padding: 0 0 18px 46px; margin: 0;
+}
+.docs-steps > li::before {
+  content: counter(docs-step); position: absolute; left: 0; top: 0;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent);
+  font-family: var(--font-display); font-weight: 700; font-size: 0.9rem;
+}
+.docs-steps > li:not(:last-child)::after {
+  content: ""; position: absolute; left: 14px; top: 34px; bottom: 4px; width: 2px;
+  background: var(--border); border-radius: 2px;
+}
+.docs-steps > li:last-child { padding-bottom: 0; }
+.docs-step-title { display: block; font-family: var(--font-display); font-weight: 650; line-height: 30px; }
+.docs-steps p { margin: 0; color: var(--text); }
+
+/* Callouts */
+.docs-callout {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin: 16px 0; padding: 14px 16px; border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+.docs-callout-info { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 22%, transparent); }
+.docs-callout-warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 28%, transparent); }
+.docs-callout-icon {
+  flex-shrink: 0; width: 22px; height: 22px; margin-top: 2px; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; font-family: var(--font-display);
+}
+.docs-callout-info .docs-callout-icon { background: var(--accent); color: var(--on-accent); }
+.docs-callout-warn .docs-callout-icon { background: var(--warn); color: var(--surface); }
+.docs-callout p { margin: 0; font-size: 0.95rem; }
+.docs-callout .docs-callout-title { font-weight: 650; margin-bottom: 2px; }
+.docs-callout-warn .docs-callout-title { color: var(--warn); }
+.docs-callout .docs-ui { background: var(--surface); }
+
+/* Definition lists */
+.docs-defs { margin: 0 0 12px; }
+.docs-defs dt { font-weight: 650; margin-top: 14px; }
+.docs-defs dt:first-child { margin-top: 0; }
+.docs-defs dd { margin: 2px 0 0; padding-left: 14px; border-left: 2px solid var(--border); color: var(--text); }
+
+/* Proves / doesn't */
+.docs-compare { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 16px 0; }
+@media (min-width: 640px) { .docs-compare { grid-template-columns: 1fr 1fr; } }
+.docs-compare-col { border-radius: var(--radius); padding: 14px 16px; background: var(--surface-2); }
+.docs .docs-section .docs-compare-col h3 { margin: 0 0 6px; }
+.docs-compare-col ul { list-style: none; padding: 0; margin: 0; }
+.docs-compare-col li { position: relative; padding-left: 24px; margin: 8px 0; font-size: 0.95rem; }
+.docs-compare-col li::before {
+  position: absolute; left: 0; top: 0; width: 18px; text-align: center; font-weight: 700;
+}
+.docs-compare-yes { background: var(--good-soft); }
+.docs-compare-yes li::before { content: "✓"; color: var(--good); }
+.docs-compare-no li::before { content: "–"; color: var(--muted); }
+
+/* Developer tools */
+.docs-tools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 16px; }
+.docs-section > .docs-tools { max-width: none; }
+.docs-tool { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-size: 0.95rem; }
+.docs .docs-section .docs-tool h3 { margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+.docs-tool h3 a { color: var(--text); text-decoration: none; }
+.docs-tool h3 a::after { content: " →"; color: var(--accent); }
+.docs-tool h3 a:hover { color: var(--accent); }
+.docs-tag {
+  font-family: system-ui, sans-serif; font-size: 0.7rem; font-weight: 500; padding: 1px 8px; border-radius: 999px;
+  background: var(--surface-2); color: var(--muted);
+}
+.docs-example {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; align-items: baseline;
+  margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); font-size: 0.86rem;
+}
+.docs-example-k { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.docs-section .docs-example code { background: var(--surface); }
+
+.docs-pre {
+  margin: 0 0 12px; padding: 12px 14px; border-radius: 8px; overflow-x: auto;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.docs-section .docs-pre code { padding: 0; border: 0; background: none; font-size: 0.86rem; overflow-wrap: normal; white-space: pre; }
+
+/* FAQ */
+.docs-faq { border-top: 1px solid var(--border); }
+.docs-faq-item { margin: 0; border-bottom: 1px solid var(--border); }
+.docs-faq-item summary {
+  list-style: none; cursor: pointer; padding: 14px 32px 14px 0; position: relative;
+  font-size: 1rem; font-weight: 600; color: var(--text);
+}
+.docs-faq-item summary::-webkit-details-marker { display: none; }
+.docs-faq-item summary::after {
+  content: "+"; position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  font-size: 1.3rem; font-weight: 400; color: var(--accent); line-height: 1;
+}
+.docs-faq-item[open] summary::after { content: "−"; }
+.docs-faq-item summary:hover { color: var(--accent); }
+.docs-faq-item p { margin: 0 0 16px; color: var(--text); }
+
+/* Glossary */
+.docs-glossary { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; }
+.docs-glossary dt { font-weight: 650; font-family: var(--font-display); margin-top: 12px; }
+.docs-glossary dt:first-child { margin-top: 0; }
+.docs-glossary dd { margin: 0; color: var(--muted); }
+@media (min-width: 640px) {
+  .docs-glossary { grid-template-columns: 9.5rem minmax(0, 1fr); gap: 0; }
+  .docs-glossary dt { padding-right: 16px !important; }
+  .docs-glossary dt, .docs-glossary dd { padding: 10px 0; margin: 0; border-top: 1px solid var(--border); }
+  .docs-glossary dt:first-of-type, .docs-glossary dd:first-of-type { border-top: 0; }
+}
+
+.docs-foot { margin: 4px 0 0; text-align: center; }
+
+/* Phones */
+@media (max-width: 520px) {
+  .docs-hero { padding: 22px 18px 18px; }
+  .docs .docs-hero-title { font-size: 1.45rem; }
+  .docs-section { padding: 20px 16px; }
+  .docs .docs-h { font-size: 1.2rem; }
+  .docs-steps > li { padding-left: 42px; }
+}
+
+/* Fade sections in once as they scroll into view. Off for reduced motion (set in JS too). */
+@media (prefers-reduced-motion: no-preference) {
+  .docs[data-anim="on"] .docs-section { transition: opacity 0.5s ease, transform 0.5s ease; }
+  .docs[data-anim="on"] .docs-section:not(.docs-in) { opacity: 0; transform: translateY(12px); }
+}
+
+@media print {
+  .docs-aside, .docs-toc-mobile, .docs-hero-actions, .docs-anchor { display: none; }
+  .docs { display: block; }
+  .docs-section { opacity: 1 !important; transform: none !important; break-inside: avoid-page; }
+}
