@@ -13,6 +13,7 @@
   <img alt="Miden testnet" src="https://img.shields.io/badge/Miden-testnet-3b2fc9">
   <img alt="No backend" src="https://img.shields.io/badge/backend-none-17663f">
   <img alt="SDK" src="https://img.shields.io/badge/%40miden--sdk-0.17-5e5e6e">
+  <a href="https://www.npmjs.com/package/notecheck"><img alt="npm" src="https://img.shields.io/npm/v/notecheck?color=3b2fc9"></a>
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-5e5e6e">
 </p>
 
