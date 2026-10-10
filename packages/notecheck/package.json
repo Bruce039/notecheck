@@ -1,6 +1,6 @@
 {
   "name": "notecheck",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Verifiable private payment receipts and payment requests for Miden",
   "type": "module",
   "exports": {
