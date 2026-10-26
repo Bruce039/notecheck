@@ -4,6 +4,7 @@ import { LogoMark, Wordmark } from "@/components/Logo";
 declare const __BUILD__: string;
 const BUILD = typeof __BUILD__ === "string" ? __BUILD__ : "dev";
 const REPO = "https://github.com/Bruce039/notecheck";
+const YEAR = new Date().getFullYear();
 
 type Link = { label: string; href: string; external?: boolean };
 
@@ -71,11 +72,11 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
         </div>
       )}
       <div className="sf-bottom">
-        <span>{BRAND.disclaimer}.</span>
+        <span>© {YEAR} {BRAND.name}. Independent project, not affiliated with Miden.</span>
         <span className="sf-meta">
-          <span>Built on <code>@miden-sdk</code> 0.17</span>
-          <a href={REPO} target="_blank" rel="noopener noreferrer">MIT license</a>
-          <span>build <code>{BUILD}</code></span>
+          <a href={REPO} target="_blank" rel="noopener noreferrer">Open source</a>
+          <a href={`${REPO}/blob/main/LICENSE`} target="_blank" rel="noopener noreferrer">MIT License</a>
+          <span className="sf-version">Build {BUILD}</span>
         </span>
       </div>
     </footer>

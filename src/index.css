@@ -438,10 +438,18 @@ footer { padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--borde
 .sf-group a { color: var(--muted); text-decoration: none; transition: color .2s, padding-left .2s var(--ease-out); }
 .sf-group a:hover { color: var(--text); padding-left: 3px; }
 .sf-ext { margin-left: 4px; font-size: 0.8em; opacity: 0.6; }
-.sf-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin-top: 16px; padding: 0 6px; font-size: 0.78rem; }
-.sf-meta { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; }
-.sf-meta a { color: inherit; }
-.sf-meta a:hover { color: var(--accent); }
+.sf-bottom {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px;
+  margin-top: 18px; padding: 14px 6px 0; font-size: 0.78rem; color: var(--muted);
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.sf-meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.sf-meta a { color: var(--muted); text-decoration: none; transition: color .2s; }
+.sf-meta a:hover { color: var(--text); }
+.sf-version {
+  font-variant-numeric: tabular-nums; letter-spacing: 0.02em; padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border); font-size: 0.72rem;
+}
 .site-footer-compact .sf-bottom { margin-top: 0; }
 .site-footer code { font-size: 0.85em; }
 
