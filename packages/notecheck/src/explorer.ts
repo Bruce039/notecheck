@@ -2,7 +2,7 @@ import type { Network } from "./network.js";
 
 // Midenscan routes: /tx/<id>, /note/<id>, /account/<id or bech32>, /block/<number>.
 const BASES: Partial<Record<Network, string>> = {
-  mainnet: "https://explorer.cedar.miden.io",
+  mainnet: "https://explorer.mainnet.miden.io",
   testnet: "https://testnet.midenscan.com",
   devnet: "https://devnet.midenscan.com",
 };

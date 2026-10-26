@@ -19,8 +19,8 @@ export function networkId(network: Network): NetworkId {
   }
 }
 
-/** Mainnet node (the SDK has no preset for it yet). */
-export const MAINNET_RPC_URL = "https://rpc.cedar.miden.io";
+/** Mainnet node (the SDK has no preset for it yet; rpc.cedar.miden.io is the same node). */
+export const MAINNET_RPC_URL = "https://rpc.mainnet.miden.io";
 
 export function endpoint(network: Network): Endpoint {
   switch (network) {

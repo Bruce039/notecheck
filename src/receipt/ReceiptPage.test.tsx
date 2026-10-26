@@ -400,7 +400,7 @@ describe("ReceiptPage", () => {
     expect(screen.queryByText("Test network — no real value")).not.toBeInTheDocument();
     expect(screen.getByText(toBech32(R.recipient, "mainnet"))).toBeInTheDocument();
     const hrefs = Array.from(document.querySelectorAll<HTMLAnchorElement>("a.explorer-link")).map((a) => a.getAttribute("href"));
-    expect(hrefs).toContain(`https://explorer.cedar.miden.io/note/${R.noteId}`);
+    expect(hrefs).toContain(`https://explorer.mainnet.miden.io/note/${R.noteId}`);
     expect(screen.getByText(/Are you the recipient/)).toBeInTheDocument();
   });
 

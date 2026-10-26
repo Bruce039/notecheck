@@ -30,7 +30,7 @@ const GROUPS: { title: string; links: Link[] }[] = [
   {
     title: "Miden",
     links: [
-      { label: "Midenscan", href: "https://explorer.cedar.miden.io", external: true },
+      { label: "Midenscan", href: "https://explorer.mainnet.miden.io", external: true },
       { label: "Testnet faucet", href: "https://faucet.testnet.miden.io", external: true },
       { label: "Miden docs", href: "https://docs.miden.xyz", external: true },
       { label: "miden.xyz", href: "https://miden.xyz", external: true },
