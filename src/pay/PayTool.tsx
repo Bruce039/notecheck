@@ -321,6 +321,11 @@ export function PayTool({ network }: { network: Network }) {
   const busy = stage.step === "progress";
   const showRequest = reqState.status !== "none" && stage.step === "form";
 
+  // A first visit with nothing to finish: the hero alone, with the wallet button as its call to action.
+  const landing = !connected && stage.step === "form" && reqState.status === "none" && pending.length === 0 && recent.length === 0;
+  const networkNote = network === "mainnet" ? "This is mainnet: payments move real money." : undefined;
+  if (landing) return <Hero docsHref="/?tool=docs" action={<WalletButton network={network} />} note={networkNote} />;
+
   return (
     <>
     {!connected && stage.step === "form" && reqState.status === "none" && <Hero docsHref="/?tool=docs" />}

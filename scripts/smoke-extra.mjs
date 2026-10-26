@@ -76,6 +76,9 @@ function fakeWallet(w) {
       this.publicKey = new Uint8Array(32);
     },
     async disconnect() { log.push(["disconnect"]); },
+    // Adapter 0.17.6 subscribes to account changes after connecting.
+    on(event) { log.push(["on", event]); },
+    off(event) { log.push(["off", event]); },
     async requestAssets() {
       log.push(["requestAssets"]);
       return { assets: [{ faucetId: w.faucet, amount: "5000000" }] };
@@ -161,17 +164,17 @@ const receiptText = async (page) => flat(await page.locator(".receipt").innerTex
   await page.getByRole("navigation", { name: "Tools", exact: true }).waitFor({ timeout: 90_000 });
   await page.locator(".tab").first().focus();
   const visited = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 9; i++) {
     await page.keyboard.press("Tab");
     visited.push(await page.evaluate(() => document.activeElement?.textContent));
   }
-  check(visited.join("|") === "Request|Receipts|Address|Felt / Word|Note tag|Hash|Fee|Allowlist", `Tab walks the tool tabs in order (${visited.join("|")})`);
+  check(visited.join("|") === "Request|Receipts|Tools|Address|Felt / Word|Note tag|Hash|Fee|Allowlist", `Tab walks the tabs, then the tool chips, in order (${visited.join("|")})`);
   await page.keyboard.press("Enter");
   await page.getByRole("heading", { name: "Allowlist", exact: true }).waitFor({ timeout: 5000 });
   check(page.url().includes("tool=allowlist"), "Enter on a tab opens that tool");
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
   check(outline !== "none", `focused tab has a visible focus outline (outline-style: ${outline})`);
-  // Into the tool content without the mouse: past the remaining tabs (Docs), then into the card.
+  // Into the tool content without the mouse: the card follows the chips.
   for (let i = 0; i < 3; i++) {
     await page.keyboard.press("Tab");
     if (await page.evaluate(() => !!document.activeElement?.closest(".tool"))) break;

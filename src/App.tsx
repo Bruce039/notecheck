@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LogoMark, Wordmark } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -18,20 +18,33 @@ import { TagTool } from "@/tools/tag/TagTool";
 import { type Network, NETWORKS } from "notecheck";
 
 type ToolId = "address" | "felt" | "tag" | "hash" | "fee" | "allowlist" | "pay" | "request" | "receipt" | "docs";
+type DevToolId = "address" | "felt" | "tag" | "hash" | "fee" | "allowlist";
 
-// Receipts first: they are the product; the developer tools follow.
-const TOOLS: { id: ToolId; label: string; ready: boolean }[] = [
-  { id: "pay", label: "Pay", ready: true },
-  { id: "request", label: "Request", ready: true },
-  { id: "receipt", label: "Receipts", ready: true },
-  { id: "address", label: "Address", ready: true },
-  { id: "felt", label: "Felt / Word", ready: true },
-  { id: "tag", label: "Note tag", ready: true },
-  { id: "hash", label: "Hash", ready: true },
-  { id: "fee", label: "Fee", ready: true },
-  { id: "allowlist", label: "Allowlist", ready: true },
-  { id: "docs", label: "Docs", ready: true },
+// The product gets the tabs; the developer tools share one, with their own row of chips.
+const MAIN: { id: ToolId | "tools"; label: string }[] = [
+  { id: "pay", label: "Pay" },
+  { id: "request", label: "Request" },
+  { id: "receipt", label: "Receipts" },
+  { id: "tools", label: "Tools" },
 ];
+
+const DEV_TOOLS: { id: DevToolId; label: string }[] = [
+  { id: "address", label: "Address" },
+  { id: "felt", label: "Felt / Word" },
+  { id: "tag", label: "Note tag" },
+  { id: "hash", label: "Hash" },
+  { id: "fee", label: "Fee" },
+  { id: "allowlist", label: "Allowlist" },
+];
+
+const TOOLS: { id: ToolId; ready: boolean }[] = [
+  ...MAIN.filter((t) => t.id !== "tools").map((t) => ({ id: t.id as ToolId, ready: true })),
+  ...DEV_TOOLS.map((t) => ({ id: t.id, ready: true })),
+  { id: "docs", ready: true },
+];
+
+const isDevTool = (t: ToolId): t is DevToolId => DEV_TOOLS.some((d) => d.id === t);
+const tabOf = (t: ToolId): ToolId | "tools" | null => (isDevTool(t) ? "tools" : t === "docs" ? null : t);
 
 const isTool = (s: string | null): s is ToolId => TOOLS.some((t) => t.id === s && t.ready);
 const isNetwork = (s: string | null): s is Network => NETWORKS.includes(s as Network);
@@ -106,20 +119,31 @@ function Toolbox() {
     window.history.replaceState(null, "", url + hash);
   }, [tool, network]);
 
+  const tab = tabOf(tool);
+  const lastDev = useRef<DevToolId>(isDevTool(tool) ? tool : "address");
+  if (isDevTool(tool)) lastDev.current = tool;
+  const go = (t: ToolId) => setState((s) => ({ ...s, tool: t }));
+
   return (
     <div className="app">
       <header className="top">
-        <div className="brand">
-          <LogoMark size={32} />
-          <div>
-            <h1><Wordmark /></h1>
-            <p className="muted small">Miden developer tools and private payment receipts. Runs entirely in your browser.</p>
-          </div>
-        </div>
+        <a className="brand" href="/" aria-label="NoteCheck home" onClick={(e) => { e.preventDefault(); go("pay"); }}>
+          <LogoMark size={30} />
+          <h1><Wordmark /></h1>
+        </a>
         <div className="top-actions">
+          <button
+            type="button"
+            className={tool === "docs" ? "top-link top-link-on" : "top-link"}
+            aria-current={tool === "docs" ? "page" : undefined}
+            onClick={() => go("docs")}
+          >
+            Docs
+          </button>
           <ThemeToggle />
-          <label className="net">
+          <label className={`net net-${network}`}>
             <span className="sr-only">Network</span>
+            <span className="net-dot" aria-hidden="true" />
             <select value={network} onChange={(e) => setState((s) => ({ ...s, network: e.target.value as Network }))}>
               {NETWORKS.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -135,22 +159,34 @@ function Toolbox() {
             style={{ transform: `translate(${pill.x}px, ${pill.y}px)`, width: pill.w, height: pill.h }}
           />
         )}
-        {TOOLS.map((t) => (
-          <Fragment key={t.id}>
+        {MAIN.map((t) => (
           <button
+            key={t.id}
             type="button"
-            className={t.id === tool ? "tab tab-on" : "tab"}
-            aria-current={t.id === tool ? "page" : undefined}
-            disabled={!t.ready}
-            title={t.ready ? undefined : "Coming soon"}
-            onClick={() => setState((s) => ({ ...s, tool: t.id }))}
+            className={t.id === tab ? "tab tab-on" : "tab"}
+            aria-current={t.id === tab ? "page" : undefined}
+            onClick={() => go(t.id === "tools" ? lastDev.current : t.id)}
           >
             {t.label}
           </button>
-          {(t.id === "receipt" || t.id === "allowlist") && <span className="tab-sep" aria-hidden="true" />}
-          </Fragment>
         ))}
       </nav>
+
+      {tab === "tools" && (
+        <nav className="subtabs" aria-label="Developer tools">
+          {DEV_TOOLS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={t.id === tool ? "subtab subtab-on" : "subtab"}
+              aria-current={t.id === tool ? "page" : undefined}
+              onClick={() => go(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      )}
 
       <main>
         {tool === "address" && <AddressTool network={network} />}

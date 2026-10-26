@@ -51,7 +51,7 @@ describe("App", () => {
     render(<App />);
     const u = userEvent.setup();
     await u.click(screen.getByRole("button", { name: "Pay" }));
-    expect(screen.getByRole("heading", { name: "Make a payment" })).toBeInTheDocument();
+    expect(document.querySelector(".nch")).not.toBeNull(); // a first visit gets the hero alone
     expect(window.location.search).toBe("?tool=pay");
     await u.selectOptions(screen.getByRole("combobox"), "devnet");
     expect(window.location.search).toBe("?tool=pay&net=devnet");
@@ -61,19 +61,36 @@ describe("App", () => {
   });
 
   it("can be driven with the keyboard alone", async () => {
-    go("/?tool=address");
+    go("/?tool=pay");
     render(<App />);
     const u = userEvent.setup();
     const tabs = screen.getAllByRole("button").filter((b) => b.classList.contains("tab"));
-    expect(tabs.map((t) => t.textContent)).toEqual(["Pay", "Request", "Receipts", "Address", "Felt / Word", "Note tag", "Hash", "Fee", "Allowlist", "Docs"]);
+    expect(tabs.map((t) => t.textContent)).toEqual(["Pay", "Request", "Receipts", "Tools"]);
     tabs[0].focus();
-    for (let i = 0; i < 8; i++) await u.tab();
-    expect(document.activeElement).toBe(tabs[8]);
+    for (let i = 0; i < 3; i++) await u.tab();
+    expect(document.activeElement).toBe(tabs[3]);
     await u.keyboard("{Enter}");
-    expect(activeTab()).toBe("Allowlist");
-    for (let i = 0; i < 6; i++) await u.tab({ shift: true });
+    expect(activeTab()).toBe("Tools");
+    expect(window.location.search).toBe("?tool=address");
+    // The developer tools follow as chips.
+    const chips = screen.getAllByRole("button").filter((b) => b.classList.contains("subtab"));
+    expect(chips.map((c) => c.textContent)).toEqual(["Address", "Felt / Word", "Note tag", "Hash", "Fee", "Allowlist"]);
+    for (let i = 0; i < 6; i++) await u.tab();
+    expect(document.activeElement).toBe(chips[5]);
     await u.keyboard(" ");
-    expect(activeTab()).toBe("Receipts");
+    expect(window.location.search).toBe("?tool=allowlist");
+    expect(activeTab()).toBe("Tools");
+    await u.click(tabs[2]);
+    await u.click(tabs[3]);
+    expect(window.location.search).toBe("?tool=allowlist"); // Tools reopens the last developer tool
+  });
+
+  it("opens the docs from the header", async () => {
+    go("/");
+    render(<App />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Docs" }));
+    expect(window.location.search).toBe("?tool=docs");
+    expect(activeTab()).toBeUndefined();
   });
 
   it("opens the Request tool from its tab and from ?tool=request", async () => {

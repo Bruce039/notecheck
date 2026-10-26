@@ -144,6 +144,21 @@ describe("PayTool", () => {
     expect(screen.queryByLabelText("Recipient address")).not.toBeInTheDocument();
   });
 
+  it("first visit: the hero alone, with the wallet button among its calls to action", () => {
+    render(<PayTool network="mainnet" />);
+    const hero = document.querySelector(".nch")!;
+    expect(hero.querySelector(".nch-ctas")).toHaveTextContent("wallet-button-stub");
+    expect(hero).toHaveTextContent("payments move real money");
+    expect(screen.queryByRole("heading", { name: "Make a payment" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the payment card when an earlier payment still needs its receipt", () => {
+    savePending({ txId: "t1", network: "testnet", recipient: F.recipient, faucetId: F.faucetId, amount: "1", createdAt: new Date().toISOString() });
+    render(<PayTool network="testnet" />);
+    expect(screen.getByRole("heading", { name: "Make a payment" })).toBeInTheDocument();
+    expect(screen.getByText(/still need a receipt/)).toBeInTheDocument();
+  });
+
   it("won't pay from a wallet on another network", () => {
     h.wallet = connectedWallet();
     render(<PayTool network="devnet" />);

@@ -157,7 +157,7 @@ export function DocsPage() {
             <Step title="Connect wallet">
               Click <Ui>Connect wallet</Ui> and approve the connection in the wallet. A green
               {" "}<Ui>connected</Ui> badge and your shortened address appear. If no wallet is found, the tab
-              shows a <Ui>Get the wallet</Ui> link instead.
+              shows a <Ui>Get the wallet</Ui> button instead.
             </Step>
             <Step title="Load my tokens">
               Click <Ui>Load my tokens</Ui>. Your wallet asks for permission before sharing your balances;

@@ -404,16 +404,77 @@ footer { padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--borde
 
 /* Site footer */
 .site-footer { margin-top: 40px; padding: 28px 0 8px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); text-align: left; font-size: 0.85rem; color: var(--muted); }
-.sf-grid { display: grid; gap: 28px; grid-template-columns: 1fr; }
-@media (min-width: 720px) { .sf-grid { grid-template-columns: 1.6fr 1fr 1fr 1fr; } }
-.sf-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; margin-bottom: 8px; }
-.sf-brand .wordmark { font-size: 1.1rem; }
-.sf-about p { margin: 0 0 10px; }
-.sf-facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
-.sf-facts b { color: var(--text); font-weight: 600; }
-.sf-col h2 { font-family: var(--mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 4px 0 10px; }
-.sf-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; }
-.sf-col a { color: var(--text); text-decoration: none; opacity: 0.85; transition: color .2s, opacity .2s; }
-.sf-col a:hover { color: var(--accent); opacity: 1; }
+.sf-main { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 20px 40px; }
+.sf-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; margin-bottom: 6px; }
+.sf-brand .wordmark { font-size: 1.05rem; }
+.sf-about { max-width: 380px; }
+.sf-about p { margin: 0 0 12px; }
+.sf-facts { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.sf-facts li {
+  font-size: 0.75rem; font-weight: 600; color: var(--text); padding: 3px 10px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.sf-facts li::before { content: "✓ "; color: var(--good); }
+.sf-links { display: grid; grid-template-columns: repeat(2, auto); gap: 8px 28px; }
+.sf-links a { color: var(--text); text-decoration: none; opacity: 0.85; transition: color .2s, opacity .2s; }
+.sf-links a:hover { color: var(--accent); opacity: 1; }
 .sf-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 24px; padding-top: 14px; border-top: 1px dashed color-mix(in srgb, var(--border) 80%, transparent); font-size: 0.8rem; }
 .site-footer code { font-size: 0.85em; }
+
+/* Header: brand link, Docs, theme and a network pill whose dot says which network you're on */
+a.brand { color: inherit; text-decoration: none; }
+.brand h1 { margin: 0; font-size: 1rem; }
+.top-link {
+  font: inherit; font-size: 0.9rem; font-weight: 500; color: var(--muted); background: none; border: 0;
+  padding: 6px 10px; border-radius: 999px; cursor: pointer; transition: color .2s, background .2s;
+}
+.top-link:hover { color: var(--text); background: var(--surface-2); }
+.top-link-on { color: var(--accent); background: var(--accent-soft); }
+.net { position: relative; flex-direction: row; align-items: center; }
+.net-dot {
+  position: absolute; left: 12px; width: 8px; height: 8px; border-radius: 50%; pointer-events: none;
+  background: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 22%, transparent);
+}
+.net-mainnet .net-dot { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent); }
+.net select { padding-left: 28px; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+
+/* Main tabs: four, evenly spread */
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { text-align: center; font-weight: 600; font-size: 0.95rem; }
+
+/* Developer tool chips under the Tools tab */
+.subtabs { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 16px; }
+.subtab {
+  font: inherit; font-size: 0.85rem; color: var(--muted); cursor: pointer;
+  padding: 5px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border);
+  transition: color .2s, border-color .2s, background .2s;
+}
+.subtab:hover { color: var(--text); border-color: var(--border-strong); }
+.subtab-on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: var(--accent-soft); font-weight: 600; }
+
+/* The wallet button sits inside the hero's calls to action */
+.nch-ctas .wallet { display: contents; }
+.nch-ctas .wallet .btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 18px; font-size: 0.93rem; font-weight: 600; border-radius: var(--radius);
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--accent) 70%, transparent);
+  transition: transform 0.15s ease;
+}
+.nch-ctas .wallet .btn:hover { transform: translateY(-1px); }
+.nch-ctas .wallet > .muted, .nch-ctas .wallet > .small { order: 3; flex-basis: 100%; }
+@container (max-width: 459px) { .nch-ctas .wallet .btn { flex: 1 1 100%; } }
+
+@media (max-width: 520px) {
+  .top { gap: 8px; flex-wrap: nowrap; }
+  .top-actions { gap: 6px; }
+  .top .wordmark { font-size: 1.15rem; }
+  .top-link { display: none; } /* Docs stays in the footer */
+  .theme-toggle button { width: 26px; height: 26px; }
+  .net select { padding: 5px 8px 5px 24px; font-size: 0.82rem; }
+  .net-dot { left: 10px; }
+  .tab { padding: 7px 4px; font-size: 0.88rem; }
+}
+@media (max-width: 380px) {
+  /* The mark alone carries the brand on the narrowest phones; the name stays for screen readers. */
+  .top .brand h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { BRAND } from "@/brand";
 import { EXAMPLE_RECEIPT_PATH } from "@/receipt/example";
 import "./hero.css";
@@ -212,7 +212,11 @@ const STEPS = [
 ];
 
 /** Landing hero for the Pay screen: headline, two calls to action, an animated receipt story and three steps. */
-export function Hero({ docsHref }: { docsHref: string }) {
+/**
+ * The landing hero. `action` (the wallet button) leads the calls to action when given;
+ * `note` replaces the line under them.
+ */
+export function Hero({ docsHref, action, note }: { docsHref: string; action?: ReactNode; note?: ReactNode }) {
   const rootRef = useRef<HTMLElement>(null);
   const uid = useId().replace(/[^\w-]/g, "");
   const reduced = useReducedMotion();
@@ -245,15 +249,16 @@ export function Hero({ docsHref }: { docsHref: string }) {
             </h2>
             <p className="nch-sub">{BRAND.pitch}</p>
             <div className="nch-ctas">
-              <a className="btn btn-primary nch-cta" href={EXAMPLE_RECEIPT_PATH}>
+              {action}
+              <a className={action ? "btn nch-cta" : "btn btn-primary nch-cta"} href={EXAMPLE_RECEIPT_PATH}>
                 See an example receipt
                 <svg className="nch-cta-arrow" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                   <path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" />
                 </svg>
               </a>
-              <a className="btn nch-cta" href={docsHref}>How it works</a>
+              {!action && <a className="btn nch-cta" href={docsHref}>How it works</a>}
             </div>
-            <p className="nch-note">Checking a receipt needs only the link and a browser.</p>
+            {(note || !action) && <p className="nch-note">{note ?? "Checking a receipt needs only the link and a browser."}</p>}
           </div>
 
           <figure className="nch-art">

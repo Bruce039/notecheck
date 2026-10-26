@@ -64,8 +64,8 @@ export function WalletButton({ network }: { network: Network }) {
   if (!ready(entry.readyState)) {
     return (
       <div className="wallet">
-        <span className="muted small">No Miden wallet detected.</span>
-        <a href={entry.adapter.url} target="_blank" rel="noreferrer">Get the wallet</a>
+        <a className="btn btn-primary" href={entry.adapter.url} target="_blank" rel="noreferrer">Get the wallet</a>
+        <span className="muted small">No Miden wallet detected. Bread runs in desktop Chrome.</span>
       </div>
     );
   }
