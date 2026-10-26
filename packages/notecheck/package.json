@@ -29,7 +29,7 @@
     "@miden-sdk/miden-sdk": "^0.17.3"
   },
   "devDependencies": {
-    "@miden-sdk/miden-sdk": "0.17.3",
+    "@miden-sdk/miden-sdk": "0.17.6",
     "@types/node": "^24.6.0",
     "typescript": "~5.7.0",
     "vitest": "^4.0.18"
