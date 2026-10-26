@@ -5,44 +5,77 @@ declare const __BUILD__: string;
 const BUILD = typeof __BUILD__ === "string" ? __BUILD__ : "dev";
 const REPO = "https://github.com/Bruce039/notecheck";
 
-const LINKS: { label: string; href: string; external?: boolean }[] = [
-  { label: "Docs", href: "/?tool=docs" },
-  { label: "Developer tools", href: "/?tool=address" },
-  { label: "GitHub", href: REPO, external: true },
-  { label: "Report a problem", href: `${REPO}/issues`, external: true },
-  { label: "Midenscan", href: "https://explorer.cedar.miden.io", external: true },
-  { label: "Testnet faucet", href: "https://faucet.testnet.miden.io", external: true },
+type Link = { label: string; href: string; external?: boolean };
+
+const GROUPS: { title: string; links: Link[] }[] = [
+  {
+    title: "Use",
+    links: [
+      { label: "Pay with a receipt", href: "/?tool=pay" },
+      { label: "Request a payment", href: "/?tool=request" },
+      { label: "Check a receipt", href: "/?tool=receipt" },
+      { label: "Docs and FAQ", href: "/?tool=docs" },
+    ],
+  },
+  {
+    title: "Build",
+    links: [
+      { label: "Developer tools", href: "/?tool=address" },
+      { label: "npm package", href: "https://www.npmjs.com/package/notecheck", external: true },
+      { label: "Source on GitHub", href: REPO, external: true },
+      { label: "Report a problem", href: `${REPO}/issues`, external: true },
+    ],
+  },
+  {
+    title: "Miden",
+    links: [
+      { label: "Midenscan", href: "https://explorer.cedar.miden.io", external: true },
+      { label: "Testnet faucet", href: "https://faucet.testnet.miden.io", external: true },
+      { label: "Miden docs", href: "https://docs.miden.xyz", external: true },
+      { label: "miden.xyz", href: "https://miden.xyz", external: true },
+    ],
+  },
 ];
 
 const FACTS = ["No backend", "No tracking", "Checked on chain"];
 
+const linkProps = (l: Link) => (l.external ? { target: "_blank", rel: "noopener noreferrer" } : {});
+
 /** Site footer: what NoteCheck is, where to go next, and what it does with your data. */
 export function SiteFooter({ compact = false }: { compact?: boolean }) {
   return (
-    <footer className="site-footer">
+    <footer className={compact ? "site-footer site-footer-compact" : "site-footer"}>
       {!compact && (
-        <div className="sf-main">
+        <div className="sf-card">
           <div className="sf-about">
-            <a href="/" className="sf-brand"><LogoMark size={24} /><Wordmark /></a>
+            <a href="/" className="sf-brand"><LogoMark size={26} /><Wordmark /></a>
             <p>{BRAND.pitch}</p>
             <ul className="sf-facts" aria-label="Privacy">
               {FACTS.map((f) => <li key={f}>{f}</li>)}
             </ul>
           </div>
-          <nav className="sf-links" aria-label="Links">
-            {LINKS.map((l) => (
-              <a key={l.href} href={l.href} {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                {l.label}{l.external && <span aria-hidden="true"> ↗</span>}
-              </a>
-            ))}
-          </nav>
+          {GROUPS.map((g) => (
+            <nav key={g.title} className="sf-group" aria-label={g.title}>
+              <h2>{g.title}</h2>
+              <ul>
+                {g.links.map((l) => (
+                  <li key={l.href}>
+                    <a href={l.href} {...linkProps(l)}>
+                      {l.label}{l.external && <span className="sf-ext" aria-hidden="true">↗</span>}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
       )}
       <div className="sf-bottom">
         <span>{BRAND.disclaimer}.</span>
-        <span>
-          Built with <code>@miden-sdk/miden-sdk</code> 0.17 · <a href={REPO} target="_blank" rel="noopener noreferrer">MIT license</a>
-          {" "}· build <code>{BUILD}</code>
+        <span className="sf-meta">
+          <span>Built on <code>@miden-sdk</code> 0.17</span>
+          <a href={REPO} target="_blank" rel="noopener noreferrer">MIT license</a>
+          <span>build <code>{BUILD}</code></span>
         </span>
       </div>
     </footer>

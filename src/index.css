@@ -403,22 +403,46 @@ footer { padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--borde
 .explorer-links { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
 
 /* Site footer */
-.site-footer { margin-top: 40px; padding: 28px 0 8px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); text-align: left; font-size: 0.85rem; color: var(--muted); }
-.sf-main { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 20px 40px; }
-.sf-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; margin-bottom: 6px; }
-.sf-brand .wordmark { font-size: 1.05rem; }
-.sf-about { max-width: 380px; }
-.sf-about p { margin: 0 0 12px; }
+.site-footer { margin-top: 36px; padding: 0 0 8px; text-align: left; font-size: 0.85rem; color: var(--muted); }
+.sf-card {
+  position: relative; display: grid; gap: 24px 28px; grid-template-columns: 1fr 1fr;
+  padding: 26px 24px 24px; border-radius: var(--radius-lg);
+  background: var(--glass); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.sf-card::before {
+  content: ""; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; border-radius: 0 0 2px 2px;
+  background: var(--grad); opacity: 0.7;
+}
+.sf-about { grid-column: 1 / -1; }
+@media (min-width: 560px) { .sf-card { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 860px) { .sf-card { grid-template-columns: 1.7fr 1fr 1fr 1fr; } .sf-about { grid-column: auto; } }
+.sf-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; margin-bottom: 8px; }
+.sf-brand .wordmark { font-size: 1.1rem; }
+.sf-about p { margin: 0 0 14px; max-width: 34ch; }
 .sf-facts { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .sf-facts li {
-  font-size: 0.75rem; font-weight: 600; color: var(--text); padding: 3px 10px; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 600; color: var(--text); padding: 3px 10px; border-radius: 999px;
   background: var(--surface); border: 1px solid var(--border);
 }
 .sf-facts li::before { content: "✓ "; color: var(--good); }
-.sf-links { display: grid; grid-template-columns: repeat(2, auto); gap: 8px 28px; }
-.sf-links a { color: var(--text); text-decoration: none; opacity: 0.85; transition: color .2s, opacity .2s; }
-.sf-links a:hover { color: var(--accent); opacity: 1; }
-.sf-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 24px; padding-top: 14px; border-top: 1px dashed color-mix(in srgb, var(--border) 80%, transparent); font-size: 0.8rem; }
+.sf-group h2 {
+  font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  margin: 2px 0 12px; display: inline-flex; align-items: center; gap: 8px; color: var(--text);
+}
+.sf-group h2::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--sf-c, var(--accent)); }
+.sf-group:nth-of-type(1) { --sf-c: var(--accent); }
+.sf-group:nth-of-type(2) { --sf-c: var(--violet); }
+.sf-group:nth-of-type(3) { --sf-c: var(--cyan); }
+.sf-group ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.sf-group a { color: var(--muted); text-decoration: none; transition: color .2s, padding-left .2s var(--ease-out); }
+.sf-group a:hover { color: var(--text); padding-left: 3px; }
+.sf-ext { margin-left: 4px; font-size: 0.8em; opacity: 0.6; }
+.sf-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin-top: 16px; padding: 0 6px; font-size: 0.78rem; }
+.sf-meta { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; }
+.sf-meta a { color: inherit; }
+.sf-meta a:hover { color: var(--accent); }
+.site-footer-compact .sf-bottom { margin-top: 0; }
 .site-footer code { font-size: 0.85em; }
 
 /* Header: brand link, Docs, theme and a network pill whose dot says which network you're on */
