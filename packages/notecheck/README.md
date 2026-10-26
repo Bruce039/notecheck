@@ -96,7 +96,7 @@ const { url, request } = await createRequest({
   network: "testnet",
   to: "mtst1ap6wl92rd8jfwsgehu25ukeh5ykn7970",
   amountDecimal: "1.5",      // or amount: 1_500_000n in base units
-  // faucetId defaults to the network's fee token (USDCX on testnet)
+  // faucetId defaults to the network's fee token (USDCX)
   memo: "Invoice #7",
   ref: "INV-0007",
 });
