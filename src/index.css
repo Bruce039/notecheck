@@ -478,3 +478,97 @@ a.brand { color: inherit; text-decoration: none; }
   /* The mark alone carries the brand on the narrowest phones; the name stays for screen readers. */
   .top .brand h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
+
+/* Background: three soft lights drifting slowly behind everything. Only transforms move,
+   so it stays on the compositor; reduced motion keeps them still. */
+.bg-fx { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.bg-fx span {
+  position: absolute; border-radius: 50%; will-change: transform;
+  background: radial-gradient(closest-side, var(--fx-color) 0%, transparent 100%);
+  opacity: var(--fx-opacity, 0.55);
+}
+.bg-fx span:nth-child(1) {
+  --fx-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  width: 70vmax; height: 70vmax; left: -22vmax; top: -30vmax;
+  animation: fx-drift-a 26s ease-in-out infinite alternate;
+}
+.bg-fx span:nth-child(2) {
+  --fx-color: color-mix(in srgb, #c13cff 26%, transparent);
+  width: 56vmax; height: 56vmax; right: -20vmax; top: -12vmax;
+  animation: fx-drift-b 32s ease-in-out infinite alternate;
+}
+.bg-fx span:nth-child(3) {
+  --fx-color: color-mix(in srgb, #12b5cb 20%, transparent);
+  width: 60vmax; height: 60vmax; left: 18vw; bottom: -38vmax;
+  animation: fx-drift-c 38s ease-in-out infinite alternate;
+}
+:root[data-theme="dark"] .bg-fx span { --fx-opacity: 0.8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bg-fx span { --fx-opacity: 0.8; } }
+
+@keyframes fx-drift-a {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(14vw, 8vh, 0) scale(1.12); }
+  100% { transform: translate3d(4vw, 18vh, 0) scale(0.94); }
+}
+@keyframes fx-drift-b {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-16vw, 14vh, 0) scale(0.9); }
+  100% { transform: translate3d(-6vw, 30vh, 0) scale(1.1); }
+}
+@keyframes fx-drift-c {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-12vw, -14vh, 0) scale(1.15); }
+  100% { transform: translate3d(10vw, -6vh, 0) scale(0.95); }
+}
+/* The dot grid breathes along with them. */
+body::before { animation: fx-dots 18s ease-in-out infinite alternate; }
+@keyframes fx-dots { from { opacity: 0.55; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-fx span:nth-child(n), body::before { animation: none; }
+}
+@media print { .bg-fx { display: none; } }
+
+/* Colour: indigo leads, with violet, pink and cyan alongside. Green stays reserved for
+   results confirmed on chain. Button gradients stop at violet so white text keeps its contrast. */
+:root {
+  --violet: #7c3aed;
+  --pink: #db2777;
+  --cyan: #0891b2;
+  --grad: linear-gradient(115deg, var(--accent), var(--violet) 55%, var(--pink));
+  --grad-btn: linear-gradient(120deg, var(--accent), var(--violet));
+}
+:root[data-theme="dark"] { --violet: #b794ff; --pink: #ff7ab8; --cyan: #5ad8ea; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --violet: #b794ff; --pink: #ff7ab8; --cyan: #5ad8ea; } }
+
+.wordmark-tail {
+  background: var(--grad-btn); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.btn-primary, .nch-ctas .wallet .btn-primary {
+  background: var(--grad-btn); background-size: 160% 100%; background-position: 0% 50%; border-color: transparent;
+  transition: transform .15s var(--ease-out), box-shadow .2s, background-position .5s var(--ease-out);
+}
+.btn-primary:hover:not(:disabled) { background-position: 100% 50%; filter: none; }
+
+/* Active tab and chip: a gradient ring */
+.tab-indicator {
+  border: 1.5px solid transparent;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--grad) border-box;
+  box-shadow: var(--shadow-sm), 0 6px 18px -10px color-mix(in srgb, var(--violet) 70%, transparent);
+}
+.subtab-on {
+  border-color: transparent;
+  background: linear-gradient(color-mix(in srgb, var(--accent-soft) 100%, var(--surface)), var(--accent-soft)) padding-box, var(--grad) border-box;
+}
+
+/* Cards carry a thin gradient edge on top */
+.tool::after {
+  content: ""; position: absolute; top: 0; left: 28px; right: 28px; height: 3px; pointer-events: none;
+  border-radius: 0 0 3px 3px; background: var(--grad); opacity: 0.85;
+}
+
+/* Footer facts pick up the palette */
+.sf-facts li:nth-child(1) { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+.sf-facts li:nth-child(2) { border-color: color-mix(in srgb, var(--violet) 30%, var(--border)); }
+.sf-facts li:nth-child(3) { border-color: color-mix(in srgb, var(--cyan) 30%, var(--border)); }

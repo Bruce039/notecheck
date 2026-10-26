@@ -453,3 +453,33 @@ a.btn.nch-cta:hover .nch-cta-arrow { transform: translateX(2px); }
   .nch::before,
   .nch * { animation: none !important; transition: none !important; }
 }
+
+/* Colour (tokens in index.css) */
+.nch-mark { background: var(--grad); -webkit-background-clip: text; background-clip: text; }
+.nch-swash path { stroke: color-mix(in srgb, var(--pink) 55%, var(--violet)); opacity: 0.7; }
+.nch-eyebrow-dot { background: var(--grad); animation: nch-pulse 2.4s ease-in-out infinite; }
+@keyframes nch-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--violet) 22%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--violet) 8%, transparent); }
+}
+.nch-step:nth-child(1) { --step: var(--accent); }
+.nch-step:nth-child(2) { --step: var(--violet); }
+.nch-step:nth-child(3) { --step: var(--cyan); }
+.nch-step-icon {
+  color: var(--step); background: color-mix(in srgb, var(--step) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--step) 28%, transparent), 0 6px 14px -8px color-mix(in srgb, var(--step) 60%, transparent);
+}
+.nch-step-num { color: var(--step); }
+@media (prefers-reduced-motion: reduce) { .nch-eyebrow-dot { animation: none; } }
+/* A soft gradient frame around the hero, and steps that lift under the pointer */
+.nch {
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, var(--surface)), var(--surface) 60%) padding-box,
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, var(--border)), var(--border) 40%, var(--border) 60%, color-mix(in srgb, var(--pink) 40%, var(--border))) border-box;
+}
+.nch-step { border-radius: var(--radius); transition: transform .25s var(--ease-out); }
+.nch-step:hover { transform: translateY(-2px); }
+.nch-step:hover .nch-step-icon { transform: rotate(-6deg) scale(1.06); }
+.nch-step-icon { transition: transform .3s var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .nch-step:hover, .nch-step:hover .nch-step-icon { transform: none; } }
