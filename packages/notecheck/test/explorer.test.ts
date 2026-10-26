@@ -11,8 +11,12 @@ describe("explorerUrl", () => {
       .toBe("https://testnet.midenscan.com/account/mtst1apus5hps3cnxrq2e5fhnynez7v5sytsk");
     expect(explorerUrl("testnet", "account", "0x790a5c308e26618159a26f324f22f3")).toMatch(/\/account\/0x790a/);
   });
-  it("returns null for mainnet and malformed ids", () => {
-    expect(explorerUrl("mainnet", "tx", TX)).toBeNull();
+  it("links mainnet to its Midenscan", () => {
+    expect(explorerUrl("mainnet", "tx", TX)).toBe(`https://explorer.cedar.miden.io/tx/${TX}`);
+    expect(explorerUrl("mainnet", "account", "mm1apwt08ff2p7n45tmkmwxqfu73y70hydp"))
+      .toBe("https://explorer.cedar.miden.io/account/mm1apwt08ff2p7n45tmkmwxqfu73y70hydp");
+  });
+  it("returns null for malformed ids", () => {
     expect(explorerUrl("testnet", "tx", "wallet-internal-id")).toBeNull();
     expect(explorerUrl("testnet", "note", "0x12")).toBeNull();
     expect(explorerUrl("testnet", "block", "1; drop")).toBeNull();

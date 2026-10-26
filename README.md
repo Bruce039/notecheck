@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="Miden testnet" src="https://img.shields.io/badge/Miden-testnet-3b2fc9">
+  <img alt="Miden mainnet and testnet" src="https://img.shields.io/badge/Miden-mainnet%20%2B%20testnet-3b2fc9">
   <img alt="No backend" src="https://img.shields.io/badge/backend-none-17663f">
   <img alt="SDK" src="https://img.shields.io/badge/%40miden--sdk-0.17-5e5e6e">
   <a href="https://www.npmjs.com/package/notecheck"><img alt="npm" src="https://img.shields.io/npm/v/notecheck?color=3b2fc9"></a>
@@ -44,7 +44,7 @@ Miden payments are private: the chain doesn't show who paid whom or how much. Th
 
 Everything runs in the browser. There is no backend; the receipt lives in the link's `#fragment`, which browsers never send to a server.
 
-> Testnet only for now. Independent project, not affiliated with Miden.
+> Works on Miden mainnet and testnet. Independent project, not affiliated with Miden.
 
 ## How a receipt works
 

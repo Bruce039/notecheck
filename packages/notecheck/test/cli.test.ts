@@ -99,4 +99,15 @@ describe("run", () => {
     expect(await run(["request", "--to", R.recipient, "--amount", "1", "--usdcx", "--token", R.faucetId], both.io)).toBe(2);
     expect(both.err[0]).toMatch(/either --token or --usdcx/);
   });
+
+  it("uses mainnet's USDCX for --usdcx --network mainnet", async () => {
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ tokens: [] })));
+    try {
+      const t = io();
+      expect(await run(["request", "--to", toBech32(R.recipient, "mainnet"), "--amount", "3", "--usdcx", "--network", "mainnet"], t.io)).toBe(0);
+      expect(t.out[0]).toBe(`Payment request: 3 USDCX to ${toBech32(R.recipient, "mainnet")} on mainnet`);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

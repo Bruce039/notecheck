@@ -144,11 +144,17 @@ describe("PayTool", () => {
     expect(screen.queryByLabelText("Recipient address")).not.toBeInTheDocument();
   });
 
-  it("asks to switch to testnet on other networks", () => {
+  it("won't pay from a wallet on another network", () => {
     h.wallet = connectedWallet();
     render(<PayTool network="devnet" />);
-    expect(screen.getByText(/Payments run on testnet for now/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Load my tokens" })).not.toBeInTheDocument();
+  });
+
+  it("pays on mainnet from a mainnet wallet, saying it is real money", () => {
+    h.wallet = connectedWallet({ address: toBech32(F.sender, "mainnet") });
+    render(<PayTool network="mainnet" />);
+    expect(screen.getByText(/payments move real money/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Load my tokens" })).toBeInTheDocument();
   });
 
   it("connected without assets", async () => {

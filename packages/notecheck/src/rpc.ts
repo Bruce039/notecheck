@@ -4,7 +4,7 @@ import { endpoint, type Network } from "./network.js";
 const clients = new Map<Network, RpcClient>();
 const queues = new Map<Network, Promise<unknown>>();
 
-/** One RpcClient per network, created on first use. Throws for mainnet (no public RPC yet). */
+/** One RpcClient per network, created on first use. */
 export function rpcClient(network: Network): RpcClient {
   let c = clients.get(network);
   if (!c) {

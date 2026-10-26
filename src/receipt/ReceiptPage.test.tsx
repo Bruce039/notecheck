@@ -390,10 +390,18 @@ describe("ReceiptPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(/^This is not a valid note file\. Ask the sender to resend it/);
   });
 
-  it("explains that mainnet receipts can't be verified yet and does not call any node", async () => {
+  it("checks a mainnet receipt against mainnet, without the test-money label", async () => {
+    h.wallet = { connected: true, importPrivateNote: vi.fn() };
+    h.chain = { notes: [fixtureOnChain()] };
     await show(await encodeReceipt({ ...base, network: "mainnet" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(/mainnet, whose RPC is not public yet/);
-    expect(h.rpcNetworks).toEqual([]);
+    await heading(CONFIRMED);
+    expect(h.rpcNetworks).toEqual(["mainnet"]);
+    expect(screen.getByText(/in this browser · mainnet$/)).toBeInTheDocument();
+    expect(screen.queryByText("Test network — no real value")).not.toBeInTheDocument();
+    expect(screen.getByText(toBech32(R.recipient, "mainnet"))).toBeInTheDocument();
+    const hrefs = Array.from(document.querySelectorAll<HTMLAnchorElement>("a.explorer-link")).map((a) => a.getAttribute("href"));
+    expect(hrefs).toContain(`https://explorer.cedar.miden.io/note/${R.noteId}`);
+    expect(screen.getByText(/Are you the recipient/)).toBeInTheDocument();
   });
 
   it("reports an unreachable node in plain words, with the raw error tucked away", async () => {
@@ -504,9 +512,11 @@ describe("ReceiptPage", () => {
 
     it("notes that a protected receipt's QR code still needs the password", async () => {
       h.chain = { notes: [fixtureOnChain()] };
-      const fragment = await encodeReceipt(base, "pw");
+      // Long enough that the random base64 of the link can't contain it by chance.
+      const pw = "hunter2-correct-horse";
+      const fragment = await encodeReceipt(base, pw);
       await show(fragment);
-      await userEvent.type(await screen.findByLabelText("Password"), "pw");
+      await userEvent.type(await screen.findByLabelText("Password"), pw);
       await userEvent.click(screen.getByRole("button", { name: "Open receipt" }));
       await heading(CONFIRMED);
       expect(qr()).toBeInTheDocument();
@@ -514,7 +524,7 @@ describe("ReceiptPage", () => {
       await userEvent.click(shareButton()!);
       await waitFor(() => expect(render_).toHaveBeenCalled());
       expect(render_.mock.calls[0][0]).toMatchObject({ passwordRequired: true, url: expect.stringContaining(`#${fragment}`) });
-      expect(render_.mock.calls[0][0].url).not.toContain("pw");
+      expect(render_.mock.calls[0][0].url).not.toContain(pw);
     });
 
     it("renders the image without the memo, hides the amount on request, and downloads it", async () => {

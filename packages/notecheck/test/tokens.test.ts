@@ -12,6 +12,8 @@ const IMIDEN_B32 = "mtst1arqxg9er3xclayt95nud82jnpggl9azj";
 const IMIDEN_HEX = "0xc064172389b1fe9165a4f8d3aa530a";
 // Testnet fee faucet (public).
 const FEE_FAUCET_HEX = "0x4cbdcaffe75f0a317482224dae6436";
+// Mainnet fee faucet (USDCx).
+const MAINNET_FEE_FAUCET_HEX = "0xe69e6ca6e39df1b10c1e5399399feb";
 // The fee faucet ID with its storage-mode bits changed to private.
 const PRIVATE_HEX = "0x4cbdcaffe75f0a217482224dae6436";
 
@@ -149,12 +151,13 @@ describe("tokenInfo", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("returns null for an unlisted mainnet faucet (no RPC) and caches it", async () => {
-    fetchMock.mockResolvedValue(new Response("Not Found", { status: 404 }));
-    expect(await mod.tokenInfo("mainnet", FEE_FAUCET_HEX)).toBeNull();
-    expect(await mod.tokenInfo("mainnet", FEE_FAUCET_HEX)).toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][0]).toBe(tokenListUrl("mainnet"));
+  it("knows each network's fee token without asking the chain", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(list([])));
+    const want = { symbol: "USDCX", name: "USDCx", decimals: 6, source: "chain", verified: true };
+    expect(await mod.tokenInfo("testnet", FEE_FAUCET_HEX)).toEqual(want);
+    expect(await mod.tokenInfo("mainnet", MAINNET_FEE_FAUCET_HEX)).toEqual(want);
+    // Only the two token lists were fetched.
+    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([tokenListUrl("testnet"), tokenListUrl("mainnet")]);
   });
 
   it("does not query the chain for a private faucet", async () => {
@@ -165,15 +168,15 @@ describe("tokenInfo", () => {
 
   it("does not cache a failed list fetch", async () => {
     fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
-    expect(await mod.tokenInfo("mainnet", MIDEN_HEX)).toBeNull();
+    expect(await mod.tokenInfo("mainnet", PRIVATE_HEX)).toBeNull();
     fetchMock.mockResolvedValueOnce(new Response("err", { status: 500 }));
-    expect(await mod.tokenInfo("mainnet", MIDEN_HEX)).toBeNull();
+    expect(await mod.tokenInfo("mainnet", PRIVATE_HEX)).toBeNull();
     fetchMock.mockResolvedValueOnce(new Response("{not json", { status: 200 }));
-    expect(await mod.tokenInfo("mainnet", MIDEN_HEX)).toBeNull();
+    expect(await mod.tokenInfo("mainnet", PRIVATE_HEX)).toBeNull();
     fetchMock.mockResolvedValueOnce(jsonResponse(list([{ faucetId: MIDEN_B32.replace("mtst", "mm"), symbol: "X", decimals: 1 }], "mainnet")));
-    // Wrong checksum for the mm prefix, so still unknown, but this time from a good list.
-    expect(await mod.tokenInfo("mainnet", MIDEN_HEX)).toBeNull();
-    expect(await mod.tokenInfo("mainnet", MIDEN_HEX)).toBeNull();
+    // Wrong checksum for the mm prefix, so still unknown (and private, so not on chain), but this time from a good list.
+    expect(await mod.tokenInfo("mainnet", PRIVATE_HEX)).toBeNull();
+    expect(await mod.tokenInfo("mainnet", PRIVATE_HEX)).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
@@ -186,17 +189,19 @@ describe("tokenInfo", () => {
   });
 });
 
-describe.runIf(process.env.LIVE === "1")("tokenInfo (live testnet)", () => {
-  it("reads the fee faucet's on-chain metadata", async () => {
+describe.runIf(process.env.LIVE === "1")("tokenInfo (live)", () => {
+  it("pins the same fee token metadata mainnet's faucet has on chain", async () => {
     vi.resetModules();
     const mod: TokensModule = await import("../src/tokens.js");
-    const info = await mod.tokenInfo("testnet", FEE_FAUCET_HEX);
-    expect(info?.verified).toBe(true); // pinned native fee faucet
-    console.log("fee faucet:", info);
-    expect(info).not.toBeNull();
-    expect(info!.source).toBe("chain");
-    expect(info!.decimals).toBe(6);
-    expect(info!.symbol).toMatch(/^[A-Z0-9]{1,20}$/);
+    const { withRpc } = await import("../src/rpc.js");
+    const { BasicFungibleFaucetComponent } = await import("@miden-sdk/miden-sdk");
+    const onChain = await withRpc("mainnet", async (rpc) => {
+      const account = (await rpc.getAccountDetails(AccountId.fromHex(MAINNET_FEE_FAUCET_HEX))).account();
+      const faucet = BasicFungibleFaucetComponent.fromAccount(account!);
+      return { symbol: faucet.symbol().toString(), decimals: faucet.decimals(), name: faucet.tokenName() };
+    });
+    expect(await mod.tokenInfo("mainnet", MAINNET_FEE_FAUCET_HEX)).toMatchObject(onChain);
+    expect(await mod.tokenInfo("testnet", FEE_FAUCET_HEX)).toMatchObject({ symbol: onChain.symbol, decimals: onChain.decimals });
   }, 30_000);
 
   it("reads the live token list", async () => {

@@ -16,7 +16,7 @@ import {
   clearPending, loadPending, loadRecent, removeRecent, saveRecent, savePending, type PendingPayment, type RecentReceipt,
 } from "./payment";
 import {
-  decodeRequest, encodeReceipt, formatAmount, HRP, isRequestFragment, MEMO_MAX, type Network,
+  addressNetwork, decodeRequest, encodeReceipt, formatAmount, HRP, isRequestFragment, MEMO_MAX, type Network,
   normalizeAccountId, noteFileFromBase64, noteIdOfBytes, parseAccountId, parseAmount, type PaymentRequestV1,
   pickPaymentNote, receiptMemoFor, receiptUrl, release, toBase64, toBech32, tokenInfo, type TokenInfo,
   waitForReceipt, withRpc,
@@ -175,6 +175,9 @@ const plainAmount = (v: bigint, decimals: number) => formatAmount(v, decimals).r
 
 export function PayTool({ network }: { network: Network }) {
   const { connected, address, requestAssets, requestTransaction, waitForTransaction } = useWallet();
+  // A wallet on another network can't pay here; the WalletButton says so.
+  const walletNet = address ? addressNetwork(address.split("_")[0]) : null;
+  const walletOnNetwork = walletNet === null || walletNet === network;
   const [holdings, setHoldings] = useState<Holding[] | null>(null);
   const [assetsError, setAssetsError] = useState<string>();
   const [faucet, setFaucet] = useState("");
@@ -256,7 +259,7 @@ export function PayTool({ network }: { network: Network }) {
   const ownAccount = useMemo(() => (address ? attempt(address.split("_")[0], normalizeAccountId).result : undefined), [address]);
   const toSelf = recipientCheck.result !== undefined && recipientCheck.result === ownAccount;
   const overBalance = holding && amountCheck.result !== undefined && amountCheck.result > holding.amount;
-  const canPay = connected && address && holding && decimals !== undefined && recipientCheck.result
+  const canPay = connected && address && walletOnNetwork && holding && decimals !== undefined && recipientCheck.result
     && amountCheck.result && !overBalance && !toSelf && !pwError && !(req && !reqUsable);
 
   const run = async (p: PendingPayment, pw?: string, opts: { startedAt?: number; requester?: string } = {}) => {
@@ -344,8 +347,8 @@ export function PayTool({ network }: { network: Network }) {
           onDismiss={dismissRequest}
         />
       )}
-      {network !== "testnet" && <Notice>Payments run on testnet for now. Switch the network to testnet.</Notice>}
-      <WalletButton />
+      {network === "mainnet" && <Notice>This is mainnet: payments move real money.</Notice>}
+      <WalletButton network={network} />
 
       {pending.length > 0 && !busy && (
         <Notice tone="info">
@@ -390,7 +393,7 @@ export function PayTool({ network }: { network: Network }) {
         </details>
       )}
 
-      {connected && network === "testnet" && stage.step === "form" && !(req && !reqUsable) && (
+      {connected && walletOnNetwork && stage.step === "form" && !(req && !reqUsable) && (
         <div className="stack">
           {!holdings && (
             <div><button type="button" className="btn" onClick={() => void loadAssets()}>Load my tokens</button>

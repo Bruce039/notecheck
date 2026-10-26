@@ -123,12 +123,6 @@ export function ReceiptPage() {
     }
     if (seq.current !== my) return;
     kept.current = { fragment, receipt };
-    if (receipt.network === "mainnet") {
-      return setState({
-        step: "error", title: "Can't check mainnet receipts yet",
-        message: "This receipt is for mainnet, whose RPC is not public yet. It can't be verified here.", retry: false,
-      });
-    }
     return check(receipt, my);
   }, [check]);
 
@@ -278,7 +272,7 @@ function NotOnChain({ checked, onRecheck }: { checked: Checked; onRecheck: () =>
       <div className="rc-pad stack rc-rise" style={step(1)}>
         <p>
           {notFound
-            ? "No payment with this note ID has been recorded. It may still be on its way, the receipt may be for a different network, or the test network may have been reset."
+            ? `No payment with this note ID has been recorded. It may still be on its way${net === "mainnet" ? " or" : ","} the receipt may be for a different network${net === "mainnet" ? "" : ", or the test network may have been reset"}.`
             : <>The payment in this link differs from what the network recorded: {mismatchReason(result.status === "mismatch" ? result.reason : "")}.</>}
         </p>
         <p className="muted small">
@@ -505,7 +499,7 @@ function Confirmed({ checked, result, onRecheck }: { checked: Checked; result: I
         </div>
       </Slip>
 
-      {result.spentAt === null && net === "testnet" && <ImportToWallet noteFileB64={receipt.noteFile} />}
+      {result.spentAt === null && net !== "devnet" && <ImportToWallet noteFileB64={receipt.noteFile} network={net} />}
     </>
   );
 }
@@ -556,7 +550,7 @@ function Amounts({ network, result, tokens }: { network: Network; result: Includ
 }
 
 /** Lets the recipient pull the note into their wallet if private delivery didn't reach them. */
-function ImportToWallet({ noteFileB64 }: { noteFileB64: string }) {
+function ImportToWallet({ noteFileB64, network }: { noteFileB64: string; network: Network }) {
   const { connected, importPrivateNote } = useWallet();
   const [state, setState] = useState<{ busy?: boolean; done?: boolean; error?: string }>({});
 
@@ -578,7 +572,7 @@ function ImportToWallet({ noteFileB64 }: { noteFileB64: string }) {
         Your wallet normally gets private notes automatically. If this one hasn't shown up, import it from this
         receipt. Only the recipient account can claim it.
       </p>
-      {!connected && <WalletButton />}
+      {!connected && <WalletButton network={network} />}
       {connected && !state.done && (
         <div><button type="button" className="btn btn-primary" disabled={state.busy} onClick={() => void run()}>
           {state.busy ? "Waiting for the wallet…" : "Import into my wallet"}

@@ -54,16 +54,12 @@ export function FeeTool({ network }: { network: Network }) {
 
       <TextInput label="Verification base fee (base units)" value={baseFee} onChange={setBaseFee}
         placeholder="from the latest block header" />
-      {network === "mainnet" ? (
-        <Notice tone="info">Mainnet RPC is not public yet. Enter the base fee manually.</Notice>
-      ) : (
-        <p className="small">
-          <button type="button" className="btn" onClick={fetchBaseFee} disabled={loading}>
-            {loading ? "Fetching…" : `Fetch from ${network}`}
-          </button>
-          {fromChain && <span className="muted"> · block {fromChain.block}</span>}
-        </p>
-      )}
+      <p className="small">
+        <button type="button" className="btn" onClick={fetchBaseFee} disabled={loading}>
+          {loading ? "Fetching…" : `Fetch from ${network}`}
+        </button>
+        {fromChain && <span className="muted"> · block {fromChain.block}</span>}
+      </p>
       {error && <Notice tone="bad">Could not read the block header: {error}</Notice>}
       {b.error && <Notice tone="bad">{b.error}</Notice>}
 

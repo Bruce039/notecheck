@@ -55,7 +55,9 @@ describe("App", () => {
     expect(window.location.search).toBe("?tool=pay");
     await u.selectOptions(screen.getByRole("combobox"), "devnet");
     expect(window.location.search).toBe("?tool=pay&net=devnet");
-    expect(screen.getByText(/Payments run on testnet for now/)).toBeInTheDocument();
+    await u.selectOptions(screen.getByRole("combobox"), "mainnet");
+    expect(window.location.search).toBe("?tool=pay&net=mainnet");
+    expect(screen.getByText(/payments move real money/)).toBeInTheDocument();
   });
 
   it("can be driven with the keyboard alone", async () => {

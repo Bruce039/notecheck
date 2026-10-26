@@ -41,7 +41,7 @@ Options:
   --network      testnet (default), devnet or mainnet.
   --base-url     Site the link opens (default https://notecheck-miden.vercel.app).
   --token        Token faucet ID or bech32 address (default: the network's fee token).
-  --usdcx        Use the testnet USDCX faucet.
+  --usdcx        Use the network's USDCX (its fee token).
   -h, --help     Show this help.
   -v, --version  Show the version.
 
@@ -313,8 +313,8 @@ async function cmdRequest(p: Parsed, io: Io): Promise<number> {
   if (p.flags.has("usdcx") && p.values.token) throw new UsageError("Use either --token or --usdcx.");
   let faucetId = p.values.token;
   if (p.flags.has("usdcx")) {
-    if (network !== "testnet") throw new UsageError("--usdcx is for testnet; pass --token for other networks.");
-    faucetId = FEE_FAUCETS.testnet;
+    faucetId = FEE_FAUCETS[network];
+    if (!faucetId) throw new UsageError(`--usdcx isn't known on ${network}; pass --token.`);
   }
   const made = await createRequest({
     network, to, faucetId, amountDecimal: amount, memo: p.values.memo, ref: p.values.ref, baseUrl: p.values["base-url"],

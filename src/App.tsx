@@ -3,6 +3,7 @@ import { LogoMark, Wordmark } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SiteFooter } from "@/components/SiteFooter";
 import { AppWalletProvider } from "@/lib/wallet";
+import { useDisconnectOnNetworkChange } from "@/lib/useDisconnectOnNetworkChange";
 import { PayTool } from "@/pay/PayTool";
 import { ReceiptPage } from "@/receipt/ReceiptPage";
 import { ReceiptsTool } from "@/receipt/ReceiptsTool";
@@ -93,6 +94,7 @@ function useActivePill(tool: ToolId) {
 function Toolbox() {
   const [{ tool, network }, setState] = useState(readUrl);
   const { navRef, pill } = useActivePill(tool);
+  useDisconnectOnNetworkChange(network);
 
   useEffect(() => {
     const q = new URLSearchParams({ tool });
@@ -119,7 +121,7 @@ function Toolbox() {
           <label className="net">
             <span className="sr-only">Network</span>
             <select value={network} onChange={(e) => setState((s) => ({ ...s, network: e.target.value as Network }))}>
-              {NETWORKS.map((n) => <option key={n} value={n}>{n === "mainnet" ? "mainnet (soon)" : n}</option>)}
+              {NETWORKS.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </label>
         </div>

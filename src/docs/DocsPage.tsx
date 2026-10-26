@@ -137,17 +137,17 @@ export function DocsPage() {
             small <a href="#developer-tools">developer tools</a> for working with Miden addresses, felts, hashes,
             note tags and fees, plus an allowlist check.
           </p>
-          <Callout tone="info" title="Testnet only for now">
-            Payments use Miden's test network, so the money has no real value. {BRAND.name} is an independent
-            project, not affiliated with Miden.
+          <Callout tone="info" title="Mainnet and testnet">
+            Payments work on Miden mainnet with real money, and on the test network, whose money has no value.
+            Pick the network at the top of the page. {BRAND.name} is an independent project, not affiliated with Miden.
           </Callout>
         </>)}
 
         {section("pay", <>
           <p>
-            You need the <strong>Bread wallet</strong> browser extension in desktop Chrome, with a testnet
-            account that holds some tokens. The person you pay needs a Miden address
-            (on testnet it starts with <code>mtst1</code>).
+            You need the <strong>Bread wallet</strong> browser extension in desktop Chrome, with an account
+            that holds some tokens on the network you picked. The person you pay needs a Miden address
+            on the same network (<code>mm1</code> on mainnet, <code>mtst1</code> on testnet).
           </p>
           <ol className="docs-steps">
             <Step title="Open the Pay tab">
@@ -420,9 +420,9 @@ export function DocsPage() {
 
         {section("faq", <>
           <div className="docs-faq">
-            <Faq q="Why testnet only?">
-              {BRAND.name} is new, and payments run on Miden's test network for now. Mainnet's public node isn't
-              available yet, so mainnet receipts can't be checked here.
+            <Faq q="Which networks does it work on?">
+              Mainnet, testnet and devnet. A receipt records its network, and whoever opens it checks it against
+              that network. Your wallet must be on the network picked at the top of the page to pay.
             </Faq>
             <Faq q="Why do I need the Bread wallet?">
               Your wallet holds your keys and sends the payment; {BRAND.name} never sees them. You only need the
@@ -461,6 +461,7 @@ export function DocsPage() {
             <dt>Note ID</dt><dd>A fingerprint of the note's full contents. Change the amount or the recipient and the ID changes.</dd>
             <dt>Nullifier</dt><dd>A marker published when a note is spent, so it can't be spent twice. It shows that a note was claimed, not by whom.</dd>
             <dt>Faucet / token</dt><dd>A faucet is the account that issues a token. A token is identified by its faucet's ID, not by its name.</dd>
+            <dt>Mainnet</dt><dd>Miden's live network, where tokens have real value. Addresses start with <code>mm1</code>.</dd>
             <dt>Testnet</dt><dd>Miden's public test network. Its tokens have no value, and it is reset from time to time.</dd>
             <dt>Block</dt><dd>A numbered, timestamped batch of transactions the network records together.</dd>
           </dl>

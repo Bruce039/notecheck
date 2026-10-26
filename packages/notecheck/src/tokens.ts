@@ -22,7 +22,14 @@ export type TokenInfo = {
  */
 export const FEE_FAUCETS: Partial<Record<Network, string>> = {
   testnet: "0x4cbdcaffe75f0a317482224dae6436",
+  mainnet: "0xe69e6ca6e39df1b10c1e5399399feb",
 };
+
+/**
+ * The fee token's metadata, as read from chain. Pinned because a node can't return the faucet's
+ * account once its storage outgrows the response (testnet's has since 2026-10).
+ */
+const FEE_TOKEN: TokenInfo = { symbol: "USDCX", decimals: 6, name: "USDCx", source: "chain", verified: true };
 
 /** Same URL the Miden wallet reads; served with `Access-Control-Allow-Origin: *`. */
 export function tokenListUrl(network: Network): string {
@@ -169,7 +176,7 @@ async function resolve(network: Network, hex: string): Promise<{ info: TokenInfo
   } catch {
     final = false;
   }
-  if (network === "mainnet") return { info: null, final }; // no public RPC yet
+  if (FEE_FAUCETS[network] === hex) return { info: { ...FEE_TOKEN }, final: true };
   try {
     const info = await chainInfo(network, hex);
     // A chain hit is still revisited when the list failed, since the list takes precedence.

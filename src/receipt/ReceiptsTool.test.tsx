@@ -1,5 +1,5 @@
 // Component tests for the Receipts tab: open a link, create a receipt from a NoteFile.
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   AccountId, Felt, FeltArray, FetchedNote, FungibleAsset, InputNote, Note, NoteAssets, NoteAttachment, NoteDetails,
@@ -186,12 +186,11 @@ describe("ReceiptsTool", () => {
     expect(screen.getByRole("button", { name: "Create link" })).toBeEnabled();
   });
 
-  it("does not query a node on mainnet, and the link carries the selected network", async () => {
+  it("checks the note on mainnet, and the link carries the selected network", async () => {
     render(<ReceiptsTool network="mainnet" />);
     const u = await paste(R.noteFileB64);
     await screen.findByText("P2ID");
-    expect(screen.queryByText(/checking/)).not.toBeInTheDocument();
-    expect(h.rpcCalls).toBe(0);
+    await waitFor(() => expect(h.rpcCalls).toBe(1));
     await u.click(screen.getByRole("button", { name: "Create link" }));
     const field = (await screen.findByText("Receipt link", { selector: ".field-label" })).parentElement!;
     const url = within(field).getByText(/\/r#r1\./).textContent!;

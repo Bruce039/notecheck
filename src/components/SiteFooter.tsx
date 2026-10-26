@@ -31,6 +31,7 @@ const COLUMNS: { title: string; links: { label: string; href: string; external?:
     links: [
       { label: "Source code on GitHub", href: REPO, external: true },
       { label: "Report a problem", href: `${REPO}/issues`, external: true },
+      { label: "Midenscan (mainnet explorer)", href: "https://explorer.cedar.miden.io", external: true },
       { label: "Midenscan (testnet explorer)", href: "https://testnet.midenscan.com", external: true },
       { label: "Testnet faucet", href: "https://faucet.testnet.miden.io", external: true },
       { label: "Miden", href: "https://miden.xyz", external: true },
@@ -52,7 +53,7 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
               <li><b>No backend.</b> Everything runs in your browser; a receipt lives in its link and is never sent to a server.</li>
               <li><b>No tracking.</b> No analytics, cookies or third-party scripts.</li>
               <li><b>Checked on chain.</b> Receipts are verified against a Miden node each time they're opened.</li>
-              <li><b>Testnet only for now.</b> Amounts have no real value. Mainnet support follows its launch.</li>
+              <li><b>Mainnet and testnet.</b> Pick the network at the top; testnet amounts have no real value.</li>
             </ul>
           </div>
           {COLUMNS.map((c) => (

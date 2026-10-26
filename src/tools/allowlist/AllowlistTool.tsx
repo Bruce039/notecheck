@@ -37,15 +37,11 @@ function InviteCodeCheck({ network }: { network: Network }) {
         sent to the {network} node and nowhere else.
       </p>
       <TextInput label="Invite code" value={code} onChange={setCode} placeholder="Your invite code" />
-      {network === "mainnet" ? (
-        <Notice tone="info">Mainnet RPC is not public yet, so this can't be checked.</Notice>
-      ) : (
-        <p className="small">
-          <button type="button" className="btn" onClick={check} disabled={loading || !code.trim()}>
-            {loading ? "Checking…" : "Check code"}
-          </button>
-        </p>
-      )}
+      <p className="small">
+        <button type="button" className="btn" onClick={check} disabled={loading || !code.trim()}>
+          {loading ? "Checking…" : "Check code"}
+        </button>
+      </p>
       {shown && "error" in shown && <Notice tone="bad">{shown.error}</Notice>}
       {shown && "unsupported" in shown && (
         <Notice tone="info">
@@ -97,15 +93,11 @@ export function AllowlistTool({ network }: { network: Network }) {
       <h3>Account</h3>
       <TextInput label="Account (address or 0x ID)" value={input} onChange={setInput}
         placeholder="mtst1… or 0x…" example={EXAMPLE} />
-      {network === "mainnet" ? (
-        <Notice tone="info">Mainnet RPC is not public yet, so this can't be checked.</Notice>
-      ) : (
-        <p className="small">
-          <button type="button" className="btn btn-primary" onClick={check} disabled={loading || !input.trim()}>
-            {loading ? "Checking…" : `Check on ${network}`}
-          </button>
-        </p>
-      )}
+      <p className="small">
+        <button type="button" className="btn btn-primary" onClick={check} disabled={loading || !input.trim()}>
+          {loading ? "Checking…" : `Check on ${network}`}
+        </button>
+      </p>
       {shown && "error" in shown && <Notice tone="bad">{shown.error}</Notice>}
       {shown && "result" in shown && (
         <>

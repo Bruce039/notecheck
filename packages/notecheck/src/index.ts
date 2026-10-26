@@ -32,7 +32,7 @@ export {
 export {
   accountOnNetwork, normalizeAccountId, parseAccountId, toBech32, type AccountInput,
 } from "./account.js";
-export { HRP, NETWORKS, endpoint, networkFromHrp, networkId, type Network } from "./network.js";
+export { HRP, NETWORKS, addressNetwork, endpoint, networkFromHrp, networkId, type Network } from "./network.js";
 export { rpcClient, withRpc } from "./rpc.js";
 export {
   FEE_FAUCETS, formatAmount, parseAmount, parseTokenList, tokenInfo, tokenListUrl, type TokenInfo,

@@ -19,11 +19,14 @@ export function networkId(network: Network): NetworkId {
   }
 }
 
+/** Mainnet node (the SDK has no preset for it yet). */
+export const MAINNET_RPC_URL = "https://rpc.cedar.miden.io";
+
 export function endpoint(network: Network): Endpoint {
   switch (network) {
     case "testnet": return Endpoint.testnet();
     case "devnet": return Endpoint.devnet();
-    case "mainnet": throw new Error("Mainnet RPC is not public yet.");
+    case "mainnet": return new Endpoint(MAINNET_RPC_URL);
   }
 }
 
@@ -31,4 +34,10 @@ export function endpoint(network: Network): Endpoint {
 export function networkFromHrp(hrp: string): Network | null {
   const hit = NETWORKS.find((n) => HRP[n] === hrp.toLowerCase());
   return hit ?? null;
+}
+
+/** Network of a bech32 address (`mm1…`, `mtst1…`), or null for hex or an unknown prefix. */
+export function addressNetwork(address: string): Network | null {
+  const sep = address.lastIndexOf("1");
+  return sep > 0 ? networkFromHrp(address.slice(0, sep)) : null;
 }

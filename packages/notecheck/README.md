@@ -14,7 +14,7 @@ account. A payment request is a link that asks for a payment.
 - Make and read payment request links.
 - The formats are specified in [SPEC.md](./SPEC.md).
 
-> Testnet only for now: mainnet has no public RPC yet. Independent project, not affiliated with Miden.
+> Works on Miden mainnet, testnet and devnet. Independent project, not affiliated with Miden.
 
 ## Install
 

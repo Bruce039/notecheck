@@ -60,7 +60,6 @@ function CreateReceipt({ network }: { network: Network }) {
         : (e as Error).message);
     }
     setLoaded({ bytes, summary });
-    if (network === "mainnet") return;
     try {
       const check = await withRpc(network, (rpc) => verifyNoteFile(rpc, bytes));
       setLoaded({ bytes, summary, check });
@@ -128,7 +127,7 @@ function CreateReceipt({ network }: { network: Network }) {
         <div className="stack">
           <div className="badges">
             <Badge>{loaded.summary.kind}</Badge>
-            {check === undefined && network !== "mainnet" && <Badge>checking {network}…</Badge>}
+            {check === undefined && <Badge>checking {network}…</Badge>}
             {check?.status === "included" && <Badge tone="good">on {network}, block {check.inclusionBlock.toLocaleString("en-US")}</Badge>}
             {check?.status === "not-found" && <Badge tone="bad">not found on {network}</Badge>}
             {check?.status === "mismatch" && <Badge tone="bad">does not match chain</Badge>}

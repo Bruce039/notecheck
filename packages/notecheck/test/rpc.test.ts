@@ -37,16 +37,10 @@ describe("withRpc", () => {
     await expect(slow).resolves.toBe("testnet");
   });
 
-  it("rejects (rather than throwing synchronously) for mainnet and keeps working afterwards", async () => {
-    let p: Promise<unknown> | undefined;
-    expect(() => { p = withRpc("mainnet", async () => "never"); }).not.toThrow();
-    await expect(p).rejects.toThrow(/Mainnet RPC is not public/);
-    expect(() => rpcClient("mainnet")).toThrow(/Mainnet/);
-  });
-
   it("reuses one client per network", () => {
     expect(rpcClient("testnet")).toBe(rpcClient("testnet"));
     expect(rpcClient("devnet")).not.toBe(rpcClient("testnet"));
+    expect(rpcClient("mainnet")).not.toBe(rpcClient("testnet"));
   });
 });
 
@@ -57,9 +51,7 @@ describe("network", () => {
     expect(networkFromHrp("mcst")).toBeNull();
     expect(networkFromHrp("")).toBeNull();
   });
-  it("has endpoints for testnet and devnet only", () => {
-    expect(() => endpoint("testnet")).not.toThrow();
-    expect(() => endpoint("devnet")).not.toThrow();
-    expect(() => endpoint("mainnet")).toThrow();
+  it("has an endpoint for every network", () => {
+    for (const n of NETWORKS) expect(() => endpoint(n)).not.toThrow();
   });
 });
